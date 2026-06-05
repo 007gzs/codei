@@ -6,7 +6,7 @@ set -euo pipefail
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 PY_CLI_ROOT="$(dirname "$SCRIPT_DIR")"
-DIST_DIR="$(dirname "$PY_CLI_ROOT")/dist"
+DIST_DIR="$(dirname "$(dirname "$PY_CLI_ROOT")")/dist"
 SRC_BIN="${PY_CLI_ROOT}/src/codei/bin"
 DRY_RUN="${1:-}"
 

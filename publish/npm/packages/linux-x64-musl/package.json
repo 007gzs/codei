@@ -1,12 +1,12 @@
 {
-  "name": "@codei/codei-darwin-x64",
-  "version": "0.0.2",
-  "description": "macOS x64 binary for codei",
-  "os": ["darwin"],
+  "name": "@codei/codei-linux-x64-musl",
+  "version": "0.0.3",
+  "description": "Linux x64 (musl) binary for codei",
+  "os": ["linux"],
   "cpu": ["x64"],
   "preferUnplugged": true,
   "files": [
-    "bin/codei-x86_64-apple-darwin"
+    "bin/codei-x86_64-unknown-linux-musl"
   ],
   "publishConfig": {
     "access": "public"
@@ -14,7 +14,7 @@
   "repository": {
     "type": "git",
     "url": "git+https://github.com/007gzs/codei.git",
-    "directory": "js-cli/packages/darwin-x64"
+    "directory": "js-cli/packages/linux-x64-musl"
   },
   "author": "007gzs <007gzs@gmail.com>",
   "license": "MIT OR Apache-2.0"

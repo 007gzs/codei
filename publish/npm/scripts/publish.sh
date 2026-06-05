@@ -7,7 +7,7 @@ set -euo pipefail
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 PKG_ROOT="$(dirname "$SCRIPT_DIR")"
-DIST_DIR="$(dirname "$PKG_ROOT")/dist"
+DIST_DIR="$(dirname "$(dirname "$PKG_ROOT")")/dist"
 DRY_RUN="${1:-}"
 
 # Read version from main package.json

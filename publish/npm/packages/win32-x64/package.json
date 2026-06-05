@@ -1,12 +1,12 @@
 {
-  "name": "@codei/codei-win32-arm64",
-  "version": "0.0.2",
-  "description": "Windows ARM64 binary for codei",
+  "name": "@codei/codei-win32-x64",
+  "version": "0.0.3",
+  "description": "Windows x64 binary for codei",
   "os": ["win32"],
-  "cpu": ["arm64"],
+  "cpu": ["x64"],
   "preferUnplugged": true,
   "files": [
-    "bin/codei-aarch64-pc-windows-gnullvm.exe"
+    "bin/codei-x86_64-pc-windows-gnullvm.exe"
   ],
   "publishConfig": {
     "access": "public"
@@ -14,7 +14,7 @@
   "repository": {
     "type": "git",
     "url": "git+https://github.com/007gzs/codei.git",
-    "directory": "js-cli/packages/win32-arm64"
+    "directory": "js-cli/packages/win32-x64"
   },
   "author": "007gzs <007gzs@gmail.com>",
   "license": "MIT OR Apache-2.0"

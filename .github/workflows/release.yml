@@ -92,7 +92,7 @@ jobs:
           TWINE_USERNAME: __token__
           TWINE_PASSWORD: ${{ secrets.PYPI_API_TOKEN }}
         run: |
-          cd py-cli
+          cd publish/pypi
           bash scripts/publish.sh
 
   publish_npm:
@@ -112,5 +112,5 @@ jobs:
         env:
           NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
         run: |
-          cd js-cli
+          cd publish/npm
           bash scripts/publish.sh
