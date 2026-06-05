@@ -23,24 +23,25 @@ echo "📦 Publishing codei v${VERSION} to PyPI"
 # Create bin dir
 mkdir -p "$SRC_BIN"
 
-# Copy all binaries from dist/
+# Copy all binaries from dist/, strip version prefix for consistent naming
 BINARIES=(
-  "codei-${VERSION}-x86_64-unknown-linux-musl"
-  "codei-${VERSION}-aarch64-unknown-linux-musl"
-  "codei-${VERSION}-x86_64-apple-darwin"
-  "codei-${VERSION}-aarch64-apple-darwin"
-  "codei-${VERSION}-x86_64-pc-windows-gnullvm.exe"
-  "codei-${VERSION}-aarch64-pc-windows-gnullvm.exe"
+  "codei-${VERSION}-x86_64-unknown-linux-musl|codei-x86_64-unknown-linux-musl"
+  "codei-${VERSION}-aarch64-unknown-linux-musl|codei-aarch64-unknown-linux-musl"
+  "codei-${VERSION}-x86_64-apple-darwin|codei-x86_64-apple-darwin"
+  "codei-${VERSION}-aarch64-apple-darwin|codei-aarch64-apple-darwin"
+  "codei-${VERSION}-x86_64-pc-windows-gnullvm.exe|codei-x86_64-pc-windows-gnullvm.exe"
+  "codei-${VERSION}-aarch64-pc-windows-gnullvm.exe|codei-aarch64-pc-windows-gnullvm.exe"
 )
 
 FOUND_ANY=false
 
-for bin_name in "${BINARIES[@]}"; do
-  src="${DIST_DIR}/${bin_name}"
+for entry in "${BINARIES[@]}"; do
+  IFS='|' read -r src_name dest_name <<< "$entry"
+  src="${DIST_DIR}/${src_name}"
   if [[ -f "$src" ]]; then
-    echo "📋 Copying ${bin_name}..."
-    cp "$src" "${SRC_BIN}/${bin_name}"
-    chmod +x "${SRC_BIN}/${bin_name}" 2>/dev/null || true
+    echo "📋 Copying ${src_name} → ${dest_name}..."
+    cp "$src" "${SRC_BIN}/${dest_name}"
+    chmod +x "${SRC_BIN}/${dest_name}" 2>/dev/null || true
     FOUND_ANY=true
   else
     echo "⚠️  Binary not found: ${src}"

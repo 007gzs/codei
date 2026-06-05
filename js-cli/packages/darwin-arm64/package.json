@@ -1,6 +1,6 @@
 {
-  "name": "codei-darwin-arm64",
-  "version": "0.0.1",
+  "name": "@codei/codei-darwin-arm64",
+  "version": "0.0.2",
   "description": "macOS ARM64 binary for codei",
   "os": ["darwin"],
   "cpu": ["arm64"],
@@ -8,6 +8,9 @@
   "files": [
     "bin/codei-aarch64-apple-darwin"
   ],
+  "publishConfig": {
+    "access": "public"
+  },
   "repository": {
     "type": "git",
     "url": "git+https://github.com/007gzs/codei.git",

@@ -1,6 +1,6 @@
 {
-  "name": "codei-win32-x64",
-  "version": "0.0.1",
+  "name": "@codei/codei-win32-x64",
+  "version": "0.0.2",
   "description": "Windows x64 binary for codei",
   "os": ["win32"],
   "cpu": ["x64"],
@@ -8,6 +8,9 @@
   "files": [
     "bin/codei-x86_64-pc-windows-gnullvm.exe"
   ],
+  "publishConfig": {
+    "access": "public"
+  },
   "repository": {
     "type": "git",
     "url": "git+https://github.com/007gzs/codei.git",

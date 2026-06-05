@@ -39,12 +39,12 @@ function findPlatformPkgName() {
   const arch = process.arch;
 
   const pkgNameMap = {
-    'linux:x64': 'codei-linux-x64-musl',
-    'linux:arm64': 'codei-linux-arm64-musl',
-    'darwin:x64': 'codei-darwin-x64',
-    'darwin:arm64': 'codei-darwin-arm64',
-    'win32:x64': 'codei-win32-x64',
-    'win32:arm64': 'codei-win32-arm64',
+    'linux:x64': '@codei/codei-linux-x64-musl',
+    'linux:arm64': '@codei/codei-linux-arm64-musl',
+    'darwin:x64': '@codei/codei-darwin-x64',
+    'darwin:arm64': '@codei/codei-darwin-arm64',
+    'win32:x64': '@codei/codei-win32-x64',
+    'win32:arm64': '@codei/codei-win32-arm64',
   };
 
   const key = `${platform}:${arch}`;

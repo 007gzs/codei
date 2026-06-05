@@ -1,6 +1,6 @@
 {
-  "name": "codei-linux-arm64-musl",
-  "version": "0.0.1",
+  "name": "@codei/codei-linux-arm64-musl",
+  "version": "0.0.2",
   "description": "Linux ARM64 (musl) binary for codei",
   "os": ["linux"],
   "cpu": ["arm64"],
@@ -8,6 +8,9 @@
   "files": [
     "bin/codei-aarch64-unknown-linux-musl"
   ],
+  "publishConfig": {
+    "access": "public"
+  },
   "repository": {
     "type": "git",
     "url": "git+https://github.com/007gzs/codei.git",

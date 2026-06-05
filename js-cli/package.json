@@ -13,17 +13,20 @@
     "postinstall": "node scripts/postinstall.js"
   },
   "optionalDependencies": {
-    "codei-linux-x64-musl": "0.0.2",
-    "codei-linux-arm64-musl": "0.0.2",
-    "codei-darwin-x64": "0.0.2",
-    "codei-darwin-arm64": "0.0.2",
-    "codei-win32-x64": "0.0.2",
-    "codei-win32-arm64": "0.0.2"
+    "@codei/codei-linux-x64-musl": "0.0.2",
+    "@codei/codei-linux-arm64-musl": "0.0.2",
+    "@codei/codei-darwin-x64": "0.0.2",
+    "@codei/codei-darwin-arm64": "0.0.2",
+    "@codei/codei-win32-x64": "0.0.2",
+    "@codei/codei-win32-arm64": "0.0.2"
   },
   "files": [
     "bin",
     "scripts/postinstall.js"
   ],
+  "publishConfig": {
+    "access": "public"
+  },
   "repository": {
     "type": "git",
     "url": "git+https://github.com/007gzs/codei.git",
