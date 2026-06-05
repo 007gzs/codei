@@ -1,0 +1,13 @@
+# Built wheels
+dist/
+build/
+*.egg-info/
+build-wheels/
+
+# Binaries (copied from dist/ at publish time)
+src/codei/bin/
+
+# Python cache
+__pycache__/
+*.pyc
+*.pyo

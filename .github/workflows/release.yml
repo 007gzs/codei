@@ -1,0 +1,116 @@
+name: release
+
+on:
+  push:
+    tags:
+      - v*
+env:
+  CARGO_TERM_COLOR: always
+
+jobs:
+  deploy_crate:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+      - uses: dtolnay/rust-toolchain@stable
+        with:
+          toolchain: stable
+      - run: cargo publish --allow-dirty
+        env:
+          CARGO_REGISTRY_TOKEN: ${{ secrets.CARGO_API_KEY }}
+
+  cross_build:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/checkout@v3
+      - name: Extract version from tag
+        id: vars
+        run: |
+          VERSION=${GITHUB_REF#refs/tags/v}
+          echo "version=$VERSION" >> $GITHUB_OUTPUT
+      - name: Build Cross binaries
+        run: |
+          docker run --rm \
+          -v "$(pwd):/code" \
+          -w /code \
+          -e VERSION="${{ steps.vars.outputs.version }}" \
+          ghcr.io/rust-cross/cargo-zigbuild \
+          bash -ec '
+            rustup update stable
+            rustup default stable
+            rustup target add x86_64-unknown-linux-musl aarch64-unknown-linux-musl x86_64-pc-windows-gnullvm aarch64-pc-windows-gnullvm x86_64-apple-darwin aarch64-apple-darwin
+            cargo zigbuild --release --target x86_64-unknown-linux-musl
+            cargo zigbuild --release --target aarch64-unknown-linux-musl
+            cargo zigbuild --release --target x86_64-pc-windows-gnullvm
+            cargo zigbuild --release --target aarch64-pc-windows-gnullvm
+            cargo zigbuild --release --target x86_64-apple-darwin
+            cargo zigbuild --release --target aarch64-apple-darwin
+            mkdir -p dist
+            file=codei
+            file_prefix=dist/${file}-${VERSION}-
+            cp -a target/x86_64-unknown-linux-musl/release/${file} ${file_prefix}x86_64-unknown-linux-musl
+            cp -a target/aarch64-unknown-linux-musl/release/${file} ${file_prefix}aarch64-unknown-linux-musl
+            cp -a target/x86_64-pc-windows-gnullvm/release/${file}.exe ${file_prefix}x86_64-pc-windows-gnullvm.exe
+            cp -a target/aarch64-pc-windows-gnullvm/release/${file}.exe ${file_prefix}aarch64-pc-windows-gnullvm.exe
+            cp -a target/x86_64-apple-darwin/release/${file} ${file_prefix}x86_64-apple-darwin
+            cp -a target/aarch64-apple-darwin/release/${file} ${file_prefix}aarch64-apple-darwin
+          '
+      - name: Show dist files
+        run: ls -lh dist
+      - name: Create release and upload assets
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          gh release create "v${{ steps.vars.outputs.version }}" dist/* \
+          --title "v${{ steps.vars.outputs.version }}" \
+          --generate-notes
+      - name: Upload dist artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: dist-binaries
+          path: dist/
+          retention-days: 1
+
+  publish_pypi:
+    needs: cross_build
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+      - uses: actions/download-artifact@v4
+        with:
+          name: dist-binaries
+          path: dist/
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - name: Install build tools
+        run: pip install build twine
+      - name: Build and upload PyPI package
+        env:
+          TWINE_USERNAME: __token__
+          TWINE_PASSWORD: ${{ secrets.PYPI_API_TOKEN }}
+        run: |
+          cd py-cli
+          bash scripts/publish.sh
+
+  publish_npm:
+    needs: cross_build
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+      - uses: actions/download-artifact@v4
+        with:
+          name: dist-binaries
+          path: dist/
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          registry-url: 'https://registry.npmjs.org'
+      - name: Install and publish npm packages
+        env:
+          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
+        run: |
+          cd js-cli
+          bash scripts/publish.sh

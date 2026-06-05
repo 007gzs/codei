@@ -1,0 +1,18 @@
+{
+  "name": "codei-linux-arm64-musl",
+  "version": "0.0.1",
+  "description": "Linux ARM64 (musl) binary for codei",
+  "os": ["linux"],
+  "cpu": ["arm64"],
+  "preferUnplugged": true,
+  "files": [
+    "bin/codei-aarch64-unknown-linux-musl"
+  ],
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/007gzs/codei.git",
+    "directory": "js-cli/packages/linux-arm64-musl"
+  },
+  "author": "007gzs <007gzs@gmail.com>",
+  "license": "MIT OR Apache-2.0"
+}

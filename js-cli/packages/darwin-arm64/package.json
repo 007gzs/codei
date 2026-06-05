@@ -1,0 +1,18 @@
+{
+  "name": "codei-darwin-arm64",
+  "version": "0.0.1",
+  "description": "macOS ARM64 binary for codei",
+  "os": ["darwin"],
+  "cpu": ["arm64"],
+  "preferUnplugged": true,
+  "files": [
+    "bin/codei-aarch64-apple-darwin"
+  ],
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/007gzs/codei.git",
+    "directory": "js-cli/packages/darwin-arm64"
+  },
+  "author": "007gzs <007gzs@gmail.com>",
+  "license": "MIT OR Apache-2.0"
+}
