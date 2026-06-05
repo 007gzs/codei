@@ -1,6 +1,6 @@
 {
   "name": "@codei/codei",
-  "version": "0.0.3",
+  "version": "0.0.4",
   "description": "CodeI ai-coding agent",
   "bin": {
     "codei": "bin/codei.js"
@@ -13,12 +13,12 @@
     "postinstall": "node scripts/postinstall.js"
   },
   "optionalDependencies": {
-    "@codei/codei-linux-x64-musl": "0.0.3",
-    "@codei/codei-linux-arm64-musl": "0.0.3",
-    "@codei/codei-darwin-x64": "0.0.3",
-    "@codei/codei-darwin-arm64": "0.0.3",
-    "@codei/codei-win32-x64": "0.0.3",
-    "@codei/codei-win32-arm64": "0.0.3"
+    "@codei/codei-linux-x64-musl": "0.0.4",
+    "@codei/codei-linux-arm64-musl": "0.0.4",
+    "@codei/codei-darwin-x64": "0.0.4",
+    "@codei/codei-darwin-arm64": "0.0.4",
+    "@codei/codei-win32-x64": "0.0.4",
+    "@codei/codei-win32-arm64": "0.0.4"
   },
   "files": [
     "bin",
