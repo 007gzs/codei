@@ -1,6 +1,6 @@
 {
   "name": "@codei/codei-win32-x64",
-  "version": "0.0.4",
+  "version": "0.0.5",
   "description": "Windows x64 binary for codei",
   "os": ["win32"],
   "cpu": ["x64"],
