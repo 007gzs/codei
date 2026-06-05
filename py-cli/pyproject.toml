@@ -3,7 +3,7 @@ requires = ["setuptools>=68.0", "wheel"]
 build-backend = "setuptools.build_meta"
 
 [project]
-name = "codei"
+name = "codei-cli"
 dynamic = ["version"]
 description = "CodeI ai-coding agent"
 readme = "README.md"

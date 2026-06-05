@@ -1,5 +1,5 @@
 {
-  "name": "codei",
+  "name": "@codei/codei",
   "version": "0.0.1",
   "description": "CodeI ai-coding agent",
   "bin": {
@@ -21,7 +21,7 @@
     "codei-win32-arm64": "0.0.1"
   },
   "files": [
-    "bin/codei.js",
+    "bin",
     "scripts/postinstall.js"
   ],
   "repository": {

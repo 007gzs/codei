@@ -67,6 +67,6 @@ if [[ -n "$DRY_RUN" ]]; then
   TWINE_CMD="echo [dry-run] twine upload"
 fi
 
-eval "$TWINE_CMD ${PY_CLI_ROOT}/dist/codei-${VERSION}-*.whl"
+eval "$TWINE_CMD ${PY_CLI_ROOT}/dist/codei_cli-${VERSION}-*.whl"
 
 echo "✅ Published to PyPI!"
