@@ -13,3 +13,18 @@ keywords.workspace = true
 workspace = true
 
 [dependencies]
+ratatui = { workspace = true }
+crossterm = { workspace = true }
+tokio = { workspace = true }
+serde_json = { workspace = true }
+anyhow = { workspace = true }
+codei-agent = { path = "../codei-agent" }
+codei-commands = { path = "../codei-commands" }
+codei-config = { path = "../codei-config" }
+codei-i18n = { path = "../codei-i18n" }
+codei-llm = { path = "../codei-llm" }
+codei-session = { path = "../codei-session" }
+codei-tools = { path = "../codei-tools" }
+codei-mcp = { path = "../codei-mcp" }
+unicode-width = { workspace = true }
+arboard = { workspace = true }

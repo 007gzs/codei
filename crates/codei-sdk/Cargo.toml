@@ -13,3 +13,15 @@ keywords.workspace = true
 workspace = true
 
 [dependencies]
+tokio = { workspace = true }
+thiserror = { workspace = true }
+codei-config = { path = "../codei-config" }
+codei-agent = { path = "../codei-agent" }
+codei-llm = { path = "../codei-llm" }
+codei-session = { path = "../codei-session" }
+codei-tools = { path = "../codei-tools" }
+codei-mcp = { path = "../codei-mcp" }
+
+[[example]]
+name = "run_prompt"
+path = "examples/run_prompt.rs"

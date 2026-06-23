@@ -1,0 +1,49 @@
+# CodeI user configuration
+# Docs: https://github.com/007gzs/codei
+
+[defaults]
+model = "gpt-4o"
+provider = "openai"
+temperature = 0.2
+max_tokens = 8192
+language = "zh-CN"
+
+[providers.openai]
+# api_key = "sk-..."  # optional; overrides api_key_env when set
+api_key_env = "OPENAI_API_KEY"
+base_url = "https://api.openai.com/v1"
+
+[providers.anthropic]
+api_key_env = "ANTHROPIC_API_KEY"
+
+[providers.custom]
+api_key_env = "CUSTOM_API_KEY"
+base_url = "http://localhost:8080/v1"
+api_style = "openai"
+tool_format = "tools"
+
+[agent]
+max_turns = 50
+max_tool_rounds_per_turn = 25
+context_window_tokens = 128000
+compaction_threshold = 0.85
+
+[tools.shell]
+enabled = true
+timeout_secs = 120
+allowlist = []
+
+[tools.write]
+enabled = true
+
+[tools.web_search]
+enabled = false
+
+[ui]
+theme = "auto"
+show_tool_output = true
+confirm_destructive = true
+
+[session]
+storage = "sqlite"
+dir = "~/.local/share/codei/sessions"

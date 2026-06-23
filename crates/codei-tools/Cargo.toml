@@ -13,3 +13,22 @@ keywords.workspace = true
 workspace = true
 
 [dependencies]
+serde = { workspace = true }
+serde_json = { workspace = true }
+thiserror = { workspace = true }
+async-trait = { workspace = true }
+tokio = { workspace = true }
+ignore = { workspace = true }
+walkdir = { workspace = true }
+grep-regex = { workspace = true }
+grep-searcher = { workspace = true }
+grep-matcher = { workspace = true }
+similar = { workspace = true }
+glob = { workspace = true }
+uuid = { workspace = true }
+codei-config = { path = "../codei-config" }
+codei-llm = { path = "../codei-llm" }
+codei-mcp = { path = "../codei-mcp" }
+
+[dev-dependencies]
+tempfile = { workspace = true }

@@ -1,0 +1,28 @@
+[package]
+name = "codei-mcp"
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+repository.workspace = true
+authors.workspace = true
+description.workspace = true
+readme.workspace = true
+keywords.workspace = true
+
+[lints]
+workspace = true
+
+[dependencies]
+serde = { workspace = true }
+serde_json = { workspace = true }
+thiserror = { workspace = true }
+tokio = { workspace = true }
+tracing = { workspace = true }
+codei-config = { path = "../codei-config" }
+
+[dev-dependencies]
+tempfile = { workspace = true }
+
+[[bin]]
+name = "mcp-test-server"
+path = "src/bin/mcp_test_server.rs"

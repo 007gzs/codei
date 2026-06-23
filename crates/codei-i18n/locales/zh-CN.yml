@@ -1,0 +1,67 @@
+greeting: 你好，{name}！
+app_tagline: CodeI AI 编程助手
+config_show_title: 已解析的配置
+config_init_created: 已创建配置文件：{path}
+config_init_exists: 配置文件已存在：{path}
+config_show_paths_title: 配置来源
+config_path_user: 用户配置
+config_path_project: 项目配置
+config_path_none: （未找到）
+config_path_cwd: 工作目录
+config_path_project_root: 项目根目录
+error_config: 配置错误
+
+# TUI
+tui_status_idle: 空闲
+tui_status_running: 运行中
+tui_status_error: 错误
+tui_error_prefix: "错误：{message}"
+tui_agent_task_failed: "错误：Agent 任务失败：{message}"
+tui_chat_title: " CodeI | {provider} / {model} | 目录: {cwd} "
+tui_input_approval: " 审批 [y] 同意 [n] 拒绝 "
+tui_input_running: " 输入（Agent 运行中…） "
+tui_input_normal: " 输入（Enter 发送，Shift+选中文本，Ctrl+Shift+Y 复制） "
+tui_status_bar: "状态: {status} | 会话: {session}"
+tui_commands_title: " 命令（Tab 补全，↑↓ 选择） "
+tui_tool_approval_title: " 工具审批 "
+tui_tool_approval_body: "是否批准工具 `{name}`？\n\n{args}\n\n[y] 同意  [n] 拒绝"
+tui_copy_nothing: 没有可复制的内容
+tui_copy_ok: "已复制 {count} 个字符到剪贴板"
+tui_copy_failed: "复制失败：{error}"
+tui_tool_status_ok: 成功
+tui_tool_status_error: 错误
+
+# Slash command hints
+slash_help_desc: 显示可用命令
+slash_exit_desc: 退出 CodeI
+slash_quit_desc: 退出 CodeI
+slash_clear_desc: 清空会话消息
+slash_compact_desc: 压缩会话历史
+slash_copy_desc: 复制聊天记录到剪贴板
+slash_copy_last_desc: 复制上一条助手回复
+slash_model_desc: "切换模型（如 /model gpt-4o）"
+slash_provider_desc: "切换 Provider（如 /provider openai）"
+slash_session_list_desc: 列出已保存会话
+slash_session_new_desc: 开始新会话
+slash_session_resume_desc: 按 ID 恢复会话
+
+# Slash command messages
+slash_saved_sessions: "已保存的会话："
+slash_session_line: "  {id}  更新于={updated}  目录={cwd}"
+slash_new_session: "新会话：{id}"
+slash_resumed_session: "已恢复会话 {id}"
+slash_session_compacted: 会话已压缩。
+slash_session_cleared: 会话已清空。
+slash_unknown_command: "未知命令：{command}"
+slash_help_title: "可用命令："
+slash_help_help: "  /help              显示此帮助"
+slash_help_exit: "  /exit, /quit       退出 CodeI"
+slash_help_clear: "  /clear             清空当前会话消息"
+slash_help_compact: "  /compact           压缩会话历史"
+slash_help_copy: "  /copy              复制聊天记录到剪贴板"
+slash_help_copy_last: "  /copy last         复制上一条助手回复"
+slash_help_model: "  /model NAME        切换当前会话模型"
+slash_help_provider: "  /provider NAME     切换 LLM Provider"
+slash_help_session_list: "  /session list      列出已保存会话"
+slash_help_session_new: "  /session new       开始新会话"
+slash_help_session_resume: "  /session resume ID 恢复已保存会话"

@@ -1,0 +1,67 @@
+greeting: Hello, {name}!
+app_tagline: CodeI ai-coding agent
+config_show_title: Resolved configuration
+config_init_created: Created configuration file at {path}
+config_init_exists: Configuration file already exists at {path}
+config_show_paths_title: Configuration sources
+config_path_user: User config
+config_path_project: Project config
+config_path_none: (not found)
+config_path_cwd: Working directory
+config_path_project_root: Project root
+error_config: Configuration error
+
+# TUI
+tui_status_idle: idle
+tui_status_running: running
+tui_status_error: error
+tui_error_prefix: "Error: {message}"
+tui_agent_task_failed: "Error: agent task failed: {message}"
+tui_chat_title: " CodeI | {provider} / {model} | cwd: {cwd} "
+tui_input_approval: " Approval [y] approve [n] deny "
+tui_input_running: " Input (agent running…) "
+tui_input_normal: " Input (Enter=send, Shift+select text, Ctrl+Shift+Y=copy) "
+tui_status_bar: "status: {status} | session: {session}"
+tui_commands_title: " Commands (Tab=complete, ↑↓=select) "
+tui_tool_approval_title: " Tool approval "
+tui_tool_approval_body: "Approve tool `{name}`?\n\n{args}\n\n[y] approve  [n] deny"
+tui_copy_nothing: nothing to copy
+tui_copy_ok: "copied {count} chars to clipboard"
+tui_copy_failed: "copy failed: {error}"
+tui_tool_status_ok: ok
+tui_tool_status_error: error
+
+# Slash command hints
+slash_help_desc: Show available commands
+slash_exit_desc: Exit CodeI
+slash_quit_desc: Exit CodeI
+slash_clear_desc: Clear session messages
+slash_compact_desc: Compact session history
+slash_copy_desc: Copy chat to clipboard
+slash_copy_last_desc: Copy last assistant reply
+slash_model_desc: "Switch model (e.g. /model gpt-4o)"
+slash_provider_desc: "Switch provider (e.g. /provider openai)"
+slash_session_list_desc: List saved sessions
+slash_session_new_desc: Start a new session
+slash_session_resume_desc: Resume session by id
+
+# Slash command messages
+slash_saved_sessions: "Saved sessions:"
+slash_session_line: "  {id}  updated={updated}  cwd={cwd}"
+slash_new_session: "New session: {id}"
+slash_resumed_session: "Resumed session {id}"
+slash_session_compacted: Session compacted.
+slash_session_cleared: Session cleared.
+slash_unknown_command: "Unknown command: {command}"
+slash_help_title: "Available commands:"
+slash_help_help: "  /help              Show this help"
+slash_help_exit: "  /exit, /quit       Exit CodeI"
+slash_help_clear: "  /clear             Clear current session messages"
+slash_help_compact: "  /compact           Compact session history"
+slash_help_copy: "  /copy              Copy chat to clipboard"
+slash_help_copy_last: "  /copy last         Copy last assistant reply"
+slash_help_model: "  /model NAME        Switch model for this session"
+slash_help_provider: "  /provider NAME     Switch LLM provider"
+slash_help_session_list: "  /session list      List saved sessions"
+slash_help_session_new: "  /session new       Start a new session"
+slash_help_session_resume: "  /session resume ID Resume a saved session"

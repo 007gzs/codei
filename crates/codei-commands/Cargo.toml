@@ -13,3 +13,6 @@ keywords.workspace = true
 workspace = true
 
 [dependencies]
+thiserror = { workspace = true }
+codei-session = { path = "../codei-session" }
+codei-i18n = { path = "../codei-i18n" }
