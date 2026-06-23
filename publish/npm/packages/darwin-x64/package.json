@@ -1,6 +1,6 @@
 {
   "name": "@codei/codei-darwin-x64",
-  "version": "0.0.5",
+  "version": "0.0.6",
   "description": "macOS x64 binary for codei",
   "os": ["darwin"],
   "cpu": ["x64"],
