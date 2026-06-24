@@ -1,7 +1,9 @@
 mod anthropic;
+mod client;
 mod openai;
 
 pub use anthropic::AnthropicProvider;
+pub use client::build_http_client;
 pub use openai::OpenAiProvider;
 
 use async_trait::async_trait;

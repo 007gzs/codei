@@ -130,7 +130,7 @@ impl AgentLoop {
         session.push_user(user_input);
         store.save(session)?;
 
-        let mut usage = None;
+        let mut usage: Option<Usage> = None;
         let mut rounds = 0u32;
 
         loop {
@@ -221,7 +221,10 @@ impl AgentLoop {
             }
 
             if let Some(u) = response.usage {
-                usage = Some(u);
+                match &mut usage {
+                    Some(acc) => acc.add_assign(u),
+                    None => usage = Some(u),
+                }
             }
 
             if response.tool_calls.is_empty() {

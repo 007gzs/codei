@@ -17,6 +17,8 @@ pub enum SlashCommand {
     SessionResume(String),
     Copy,
     CopyLast,
+    Language(String),
+    Tokens,
     Unknown(String),
 }
 
@@ -54,6 +56,11 @@ pub fn parse_input(line: &str) -> Input {
                 Input::SlashCommand(SlashCommand::Provider(provider))
             }
         }
+        "/language" | "/lang" => {
+            let language = parts.collect::<Vec<_>>().join(" ");
+            Input::SlashCommand(SlashCommand::Language(language))
+        }
+        "/tokens" => Input::SlashCommand(SlashCommand::Tokens),
         "/session" => match parts.next().map(str::to_ascii_lowercase).as_deref() {
             Some("list") => Input::SlashCommand(SlashCommand::SessionList),
             Some("new") => Input::SlashCommand(SlashCommand::SessionNew),
@@ -105,6 +112,26 @@ mod tests {
         assert!(matches!(
             parse_input("/copy last"),
             Input::SlashCommand(SlashCommand::CopyLast)
+        ));
+    }
+
+    #[test]
+    fn parses_language_command() {
+        assert!(matches!(
+            parse_input("/language zh-CN"),
+            Input::SlashCommand(SlashCommand::Language(s)) if s == "zh-CN"
+        ));
+        assert!(matches!(
+            parse_input("/lang en-US"),
+            Input::SlashCommand(SlashCommand::Language(s)) if s == "en-US"
+        ));
+    }
+
+    #[test]
+    fn parses_tokens_command() {
+        assert!(matches!(
+            parse_input("/tokens"),
+            Input::SlashCommand(SlashCommand::Tokens)
         ));
     }
 }

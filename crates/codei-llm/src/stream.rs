@@ -13,6 +13,17 @@ pub struct Usage {
     pub output_tokens: u32,
 }
 
+impl Usage {
+    pub fn add_assign(&mut self, other: Self) {
+        self.input_tokens = self.input_tokens.saturating_add(other.input_tokens);
+        self.output_tokens = self.output_tokens.saturating_add(other.output_tokens);
+    }
+
+    pub fn total(&self) -> u32 {
+        self.input_tokens.saturating_add(self.output_tokens)
+    }
+}
+
 #[derive(Debug, Clone)]
 pub enum StreamEvent {
     TextDelta(String),

@@ -9,6 +9,11 @@ rust_i18n::i18n!("locales", fallback = "en-US");
 /// Supported UI languages.
 pub const SUPPORTED_LOCALES: &[&str] = &["zh-CN", "en-US"];
 
+/// Returns the active locale tag (e.g. `zh-CN`, `en-US`).
+pub fn locale() -> String {
+    rust_i18n::locale().to_string()
+}
+
 /// Sets the active locale. Accepts `zh-CN` or `en-US`.
 pub fn set_locale(language: &str) -> Result<(), I18nError> {
     if !SUPPORTED_LOCALES.contains(&language) {

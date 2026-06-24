@@ -6,6 +6,7 @@ use serde_json::{json, Value};
 use tracing::{debug, error, warn};
 
 use crate::message::{Message, Role};
+use crate::provider::build_http_client;
 use crate::provider::LlmProvider;
 use crate::{
     ChatCompletionChunk, ChatRequest, ChatStream, LlmError, OpenAiUsage, StreamEvent, ToolFormat,
@@ -26,14 +27,14 @@ impl OpenAiProvider {
         api_key: String,
         base_url: String,
         tool_format: ToolFormat,
-    ) -> Self {
-        Self {
+    ) -> Result<Self, LlmError> {
+        Ok(Self {
             id: id.into(),
-            client: Client::new(),
+            client: build_http_client()?,
             api_key,
             base_url: base_url.trim_end_matches('/').to_string(),
             tool_format,
-        }
+        })
     }
 
     pub fn from_config(
@@ -45,7 +46,7 @@ impl OpenAiProvider {
         let base_url = base_url
             .map(str::to_string)
             .unwrap_or_else(|| "https://api.openai.com/v1".to_string());
-        Ok(Self::new(id, api_key, base_url, tool_format))
+        Self::new(id, api_key, base_url, tool_format)
     }
 }
 

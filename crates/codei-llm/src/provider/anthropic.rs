@@ -5,6 +5,7 @@ use serde::{Deserialize, Serialize};
 use serde_json::{json, Value};
 
 use crate::message::{Message, Role};
+use crate::provider::build_http_client;
 use crate::provider::LlmProvider;
 use crate::{ChatRequest, ChatStream, LlmError, StreamEvent, Usage};
 
@@ -29,7 +30,7 @@ impl AnthropicProvider {
             .unwrap_or_else(|| DEFAULT_BASE_URL.to_string());
         Ok(Self {
             id: id.into(),
-            client: Client::new(),
+            client: build_http_client()?,
             api_key,
             base_url: base_url.trim_end_matches('/').to_string(),
         })

@@ -8,6 +8,7 @@ use codei_commands::{
     execute_command, model_after_command, provider_after_command, CommandOutcome, SlashCommand,
 };
 use codei_i18n::{t, t_fmt};
+use codei_llm::Usage;
 use codei_session::{Session, SessionStore};
 
 pub struct SlashContext<'a> {
@@ -16,11 +17,22 @@ pub struct SlashContext<'a> {
     pub model: &'a Arc<RwLock<String>>,
     pub provider_name: &'a Arc<RwLock<String>>,
     pub agent: &'a AgentLoop,
+    pub token_usage: &'a mut Usage,
+    pub last_turn_usage: &'a mut Option<Usage>,
 }
 
 pub async fn handle_slash(cmd: SlashCommand, ctx: &mut SlashContext<'_>) -> Result<SlashAction> {
     let current_model = ctx.model.read().expect("model lock").clone();
-    let outcome = execute_command(cmd, ctx.session, &current_model);
+    let token_stats = Some(codei_commands::TokenStats {
+        session_input: ctx.token_usage.input_tokens,
+        session_output: ctx.token_usage.output_tokens,
+        last_input: ctx.last_turn_usage.map(|u| u.input_tokens).unwrap_or(0),
+        last_output: ctx
+            .last_turn_usage
+            .map(|u| u.output_tokens)
+            .unwrap_or(0),
+    });
+    let outcome = execute_command(cmd, ctx.session, &current_model, token_stats.as_ref());
 
     match &outcome {
         CommandOutcome::ModelChanged(name) => {
@@ -51,6 +63,8 @@ pub async fn handle_slash(cmd: SlashCommand, ctx: &mut SlashContext<'_>) -> Resu
         CommandOutcome::SessionNew => {
             *ctx.session = Session::new(ctx.session.cwd.clone());
             ctx.store.save(ctx.session)?;
+            *ctx.token_usage = Usage::default();
+            *ctx.last_turn_usage = None;
             return Ok(SlashAction::Message(t_fmt(
                 "slash_new_session",
                 &[("id", &ctx.session.id)],
@@ -71,6 +85,8 @@ pub async fn handle_slash(cmd: SlashCommand, ctx: &mut SlashContext<'_>) -> Resu
         }
         CommandOutcome::Cleared => {
             ctx.store.save(ctx.session)?;
+            *ctx.token_usage = Usage::default();
+            *ctx.last_turn_usage = None;
             return Ok(SlashAction::Message(t("slash_session_cleared")));
         }
         _ => {}
@@ -82,6 +98,19 @@ pub async fn handle_slash(cmd: SlashCommand, ctx: &mut SlashContext<'_>) -> Resu
     match outcome {
         CommandOutcome::Exit => Ok(SlashAction::Exit),
         CommandOutcome::Help(text) => Ok(SlashAction::Message(text)),
+        CommandOutcome::LanguageChanged(language) => Ok(SlashAction::Message(t_fmt(
+            "slash_language_changed",
+            &[("language", &language)],
+        ))),
+        CommandOutcome::LanguageInfo(language) => Ok(SlashAction::Message(t_fmt(
+            "slash_language_current",
+            &[("language", &language)],
+        ))),
+        CommandOutcome::LanguageInvalid(message) => Ok(SlashAction::Message(t_fmt(
+            "slash_language_invalid",
+            &[("message", &message)],
+        ))),
+        CommandOutcome::TokensReport(text) => Ok(SlashAction::Message(text)),
         _ => Ok(SlashAction::Continue),
     }
 }

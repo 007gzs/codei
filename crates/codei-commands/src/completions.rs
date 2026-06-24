@@ -44,6 +44,18 @@ const HINTS: &[SlashHint] = &[
         description_key: "slash_provider_desc",
     },
     SlashHint {
+        command: "/language",
+        description_key: "slash_language_desc",
+    },
+    SlashHint {
+        command: "/lang",
+        description_key: "slash_lang_desc",
+    },
+    SlashHint {
+        command: "/tokens",
+        description_key: "slash_tokens_desc",
+    },
+    SlashHint {
         command: "/session list",
         description_key: "slash_session_list_desc",
     },

@@ -5,6 +5,7 @@ use anyhow::Result;
 use codei_agent::{AgentEvent, AgentLoop};
 use codei_commands::{parse_input, Input};
 use codei_i18n::t_fmt;
+use codei_llm::Usage;
 use codei_tools::{handler_for_policy, ApprovalPolicy, ToolContext};
 use tokio::sync::mpsc;
 
@@ -49,10 +50,12 @@ pub async fn run_repl(launch: InteractiveLaunch, opts: ReplOptions) -> Result<()
 
     let stdin = io::stdin();
     let mut stdout = io::stdout();
+    let mut token_usage = Usage::default();
+    let mut last_turn_usage = None;
 
     loop {
         while let Ok(event) = rx.try_recv() {
-            render_event(&mut stdout, &event)?;
+            render_event(&mut stdout, &event, &mut token_usage, &mut last_turn_usage)?;
         }
 
         write!(stdout, "\n> ")?;
@@ -70,6 +73,8 @@ pub async fn run_repl(launch: InteractiveLaunch, opts: ReplOptions) -> Result<()
                     model: &model,
                     provider_name: &provider_name,
                     agent: &agent,
+                    token_usage: &mut token_usage,
+                    last_turn_usage: &mut last_turn_usage,
                 };
                 match handle_slash(cmd, &mut ctx).await? {
                     crate::slash::SlashAction::Exit => break,
@@ -87,7 +92,7 @@ pub async fn run_repl(launch: InteractiveLaunch, opts: ReplOptions) -> Result<()
                     )?;
                 }
                 while let Ok(event) = rx.try_recv() {
-                    render_event(&mut stdout, &event)?;
+                    render_event(&mut stdout, &event, &mut token_usage, &mut last_turn_usage)?;
                 }
             }
         }
@@ -96,14 +101,37 @@ pub async fn run_repl(launch: InteractiveLaunch, opts: ReplOptions) -> Result<()
     Ok(())
 }
 
-fn render_event(stdout: &mut impl Write, event: &AgentEvent) -> io::Result<()> {
+fn render_event(
+    stdout: &mut impl Write,
+    event: &AgentEvent,
+    token_usage: &mut Usage,
+    last_turn_usage: &mut Option<Usage>,
+) -> io::Result<()> {
     match event {
         AgentEvent::AssistantDelta { text } => write!(stdout, "{text}"),
         AgentEvent::ToolStarted { name, args } => writeln!(stdout, "\n[tool:{name}] {args}"),
         AgentEvent::ToolFinished { name, result } => {
             writeln!(stdout, "[tool:{name}]\n{}", result.content)
         }
-        AgentEvent::TurnComplete { .. } => writeln!(stdout),
+        AgentEvent::TurnComplete { usage } => {
+            if let Some(u) = *usage {
+                token_usage.add_assign(u);
+                *last_turn_usage = Some(u);
+                writeln!(
+                    stdout,
+                    "\n{}",
+                    t_fmt(
+                        "slash_tokens_turn",
+                        &[
+                            ("input", &u.input_tokens.to_string()),
+                            ("output", &u.output_tokens.to_string()),
+                        ],
+                    )
+                )
+            } else {
+                writeln!(stdout)
+            }
+        }
         AgentEvent::Error { message } => writeln!(
             stdout,
             "{}",
