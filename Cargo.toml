@@ -8,7 +8,7 @@ edition = "2021"
 license = "MIT OR Apache-2.0"
 repository = "https://github.com/007gzs/codei"
 authors = ["007gzs <007gzs@gmail.com>"]
-description = "CodeI ai-coding agent"
+description = "终端优先的 AI 编程 Agent，用自然语言在本地仓库中读代码、改代码、跑命令、调试问题。"
 readme = "README.md"
 keywords = ["codei", "ai-coding", "agent", "openai"]
 

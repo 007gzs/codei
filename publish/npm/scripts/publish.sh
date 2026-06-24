@@ -7,8 +7,11 @@ set -euo pipefail
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 PKG_ROOT="$(dirname "$SCRIPT_DIR")"
-DIST_DIR="$(dirname "$(dirname "$PKG_ROOT")")/dist"
+REPO_ROOT="$(dirname "$(dirname "$PKG_ROOT")")"
+DIST_DIR="${REPO_ROOT}/dist"
 DRY_RUN="${1:-}"
+
+bash "${REPO_ROOT}/scripts/sync-publish-readme.sh"
 
 # Read version from main package.json
 VERSION=$(node -p "require('${PKG_ROOT}/package.json').version")

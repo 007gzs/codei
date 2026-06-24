@@ -6,9 +6,12 @@ set -euo pipefail
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 PY_CLI_ROOT="$(dirname "$SCRIPT_DIR")"
-DIST_DIR="$(dirname "$(dirname "$PY_CLI_ROOT")")/dist"
+REPO_ROOT="$(dirname "$(dirname "$PY_CLI_ROOT")")"
+DIST_DIR="${REPO_ROOT}/dist"
 SRC_BIN="${PY_CLI_ROOT}/src/codei/bin"
 DRY_RUN="${1:-}"
+
+bash "${REPO_ROOT}/scripts/sync-publish-readme.sh"
 
 # Read version from __init__.py
 VERSION=$(python3 -c "

@@ -7,6 +7,9 @@ build-wheels/
 # Binaries (copied from dist/ at publish time)
 src/codei/bin/
 
+# README copied from repo root at publish time
+README.md
+
 # Python cache
 __pycache__/
 *.pyc

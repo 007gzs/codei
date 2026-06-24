@@ -1,7 +1,7 @@
 {
   "name": "@codei/codei",
   "version": "0.0.9",
-  "description": "CodeI ai-coding agent",
+  "description": "终端优先的 AI 编程 Agent，用自然语言在本地仓库中读代码、改代码、跑命令、调试问题。",
   "bin": {
     "codei": "bin/codei.js"
   },
@@ -22,7 +22,8 @@
   },
   "files": [
     "bin",
-    "scripts/postinstall.js"
+    "scripts/postinstall.js",
+    "README.md"
   ],
   "publishConfig": {
     "access": "public"
