@@ -27,10 +27,7 @@ fn init_tracing(verbose: bool) {
         if let Some(parent) = log_path.parent() {
             let _ = std::fs::create_dir_all(parent);
         }
-        let file = OpenOptions::new()
-            .create(true)
-            .append(true)
-            .open(&log_path);
+        let file = OpenOptions::new().create(true).append(true).open(&log_path);
         match file {
             Ok(file) => {
                 eprintln!("CodeI debug log: {}", log_path.display());

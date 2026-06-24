@@ -141,9 +141,9 @@ impl<'de> Deserialize<'de> for ToolCall {
 
         Ok(Self {
             id: raw.id,
-            name: raw.name.ok_or_else(|| {
-                serde::de::Error::custom("tool call missing name/function")
-            })?,
+            name: raw
+                .name
+                .ok_or_else(|| serde::de::Error::custom("tool call missing name/function"))?,
             arguments: raw.arguments.unwrap_or_default(),
         })
     }

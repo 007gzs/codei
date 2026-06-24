@@ -336,9 +336,7 @@ async fn run_app(
 
         if event::poll(Duration::from_millis(50))? {
             if let Event::Key(key) = event::read()? {
-                if key.modifiers.contains(KeyModifiers::CONTROL)
-                    && key.code == KeyCode::Char('c')
-                {
+                if key.modifiers.contains(KeyModifiers::CONTROL) && key.code == KeyCode::Char('c') {
                     if state.pending_approval.is_some() {
                         runtime.approval_gate.respond(false).await;
                         state.pending_approval = None;
@@ -369,8 +367,7 @@ async fn run_app(
                 if !slash_hints.is_empty() {
                     match key.code {
                         KeyCode::Up => {
-                            state.completion_index =
-                                state.completion_index.saturating_sub(1);
+                            state.completion_index = state.completion_index.saturating_sub(1);
                             continue;
                         }
                         KeyCode::Down => {
@@ -379,10 +376,7 @@ async fn run_app(
                             continue;
                         }
                         KeyCode::Tab => {
-                            apply_slash_completion(
-                                state,
-                                slash_hints[state.completion_index],
-                            );
+                            apply_slash_completion(state, slash_hints[state.completion_index]);
                             continue;
                         }
                         _ => {}
@@ -451,21 +445,16 @@ async fn run_app(
                                 };
                                 match handle_slash(cmd, &mut ctx).await? {
                                     SlashAction::Exit => break,
-                                    SlashAction::Message(text) => {
-                                        state.lines.push(ChatLine {
-                                            text,
-                                            style: Style::default().fg(Color::Cyan),
-                                        })
-                                    }
+                                    SlashAction::Message(text) => state.lines.push(ChatLine {
+                                        text,
+                                        style: Style::default().fg(Color::Cyan),
+                                    }),
                                     SlashAction::Continue => {}
                                 }
                                 state.model_name =
                                     runtime.model.read().expect("model lock").clone();
-                                state.provider_label = runtime
-                                    .provider_name
-                                    .read()
-                                    .expect("provider lock")
-                                    .clone();
+                                state.provider_label =
+                                    runtime.provider_name.read().expect("provider lock").clone();
                             }
                             Input::UserMessage(msg) => {
                                 start_agent_turn(runtime, state, msg);
@@ -547,10 +536,7 @@ async fn poll_turn_task(state: &mut AppState) {
         }
         Err(err) => {
             state.lines.push(ChatLine {
-                text: t_fmt(
-                    "tui_agent_task_failed",
-                    &[("message", &err.to_string())],
-                ),
+                text: t_fmt("tui_agent_task_failed", &[("message", &err.to_string())]),
                 style: Style::default().fg(Color::Red),
             });
             state.status = t("tui_status_error");

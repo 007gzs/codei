@@ -63,7 +63,12 @@ pub struct ProviderConfig {
 impl ProviderConfig {
     /// Resolve API key: `api_key` first, then the environment variable named by `api_key_env`.
     pub fn resolve_api_key(&self) -> Result<String, crate::ConfigError> {
-        if let Some(key) = self.api_key.as_deref().map(str::trim).filter(|k| !k.is_empty()) {
+        if let Some(key) = self
+            .api_key
+            .as_deref()
+            .map(str::trim)
+            .filter(|k| !k.is_empty())
+        {
             return Ok(key.to_string());
         }
         let env_name = self

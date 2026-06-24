@@ -19,12 +19,10 @@ pub fn create_provider_by_name(
         }
     })?;
 
-    let api_key = provider_cfg
-        .resolve_api_key()
-        .map_err(|err| match err {
-            codei_config::ConfigError::MissingApiKey { env } => LlmError::MissingApiKey { env },
-            other => LlmError::Config(other.to_string()),
-        })?;
+    let api_key = provider_cfg.resolve_api_key().map_err(|err| match err {
+        codei_config::ConfigError::MissingApiKey { env } => LlmError::MissingApiKey { env },
+        other => LlmError::Config(other.to_string()),
+    })?;
 
     let api_style = provider_cfg.api_style.as_deref().unwrap_or("openai");
 

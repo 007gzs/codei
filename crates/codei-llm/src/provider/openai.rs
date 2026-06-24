@@ -83,11 +83,9 @@ impl LlmProvider for OpenAiProvider {
 
         let (tools, tool_choice, functions, function_call) = match self.tool_format {
             ToolFormat::Tools => {
-                let defs = request.tools.map(|defs| {
-                    defs.iter()
-                        .map(|d| d.to_openai_tool())
-                        .collect::<Vec<_>>()
-                });
+                let defs = request
+                    .tools
+                    .map(|defs| defs.iter().map(|d| d.to_openai_tool()).collect::<Vec<_>>());
                 (defs, Some(json!("auto")), None, None)
             }
             ToolFormat::Functions => {
@@ -178,10 +176,7 @@ fn message_to_api_json(msg: &Message, prior: &[Message], format: ToolFormat) -> 
 
     match msg.role {
         Role::Assistant => {
-            let has_text = msg
-                .content
-                .as_ref()
-                .is_some_and(|text| !text.is_empty());
+            let has_text = msg.content.as_ref().is_some_and(|text| !text.is_empty());
             let mut obj = json!({
                 "role": "assistant",
                 "content": if has_text {
@@ -340,7 +335,11 @@ fn truncate(value: &str, max: usize) -> String {
     if value.len() <= max {
         return value.to_string();
     }
-    format!("{}… [truncated, total {} bytes]", &value[..max], value.len())
+    format!(
+        "{}… [truncated, total {} bytes]",
+        &value[..max],
+        value.len()
+    )
 }
 
 #[cfg(test)]
@@ -434,7 +433,11 @@ mod tests {
 
         let mut args = String::new();
         for event in events {
-            if let Ok(StreamEvent::ToolCallDelta { arguments: Some(part), .. }) = event {
+            if let Ok(StreamEvent::ToolCallDelta {
+                arguments: Some(part),
+                ..
+            }) = event
+            {
                 args.push_str(&part);
             }
         }

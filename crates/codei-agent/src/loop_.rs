@@ -209,9 +209,11 @@ impl AgentLoop {
                     "agent tool_call final"
                 );
             }
-            if response.tool_calls.iter().any(|c| {
-                c.arguments.trim().is_empty() || c.arguments.trim() == "{}"
-            }) {
+            if response
+                .tool_calls
+                .iter()
+                .any(|c| c.arguments.trim().is_empty() || c.arguments.trim() == "{}")
+            {
                 warn!(
                     round = rounds,
                     "agent received tool_call with empty or {{}} arguments"
@@ -390,7 +392,11 @@ fn truncate(value: &str, max: usize) -> String {
     if value.len() <= max {
         return value.to_string();
     }
-    format!("{}… [truncated, total {} bytes]", &value[..max], value.len())
+    format!(
+        "{}… [truncated, total {} bytes]",
+        &value[..max],
+        value.len()
+    )
 }
 
 fn truncate_opt(value: Option<&str>, max: usize) -> String {

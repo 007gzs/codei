@@ -38,7 +38,10 @@ pub async fn handle_slash(cmd: SlashCommand, ctx: &mut SlashContext<'_>) -> Resu
                     "slash_session_line",
                     &[
                         ("id", &s.id),
-                        ("updated", &s.updated_at.format("%Y-%m-%d %H:%M").to_string()),
+                        (
+                            "updated",
+                            &s.updated_at.format("%Y-%m-%d %H:%M").to_string(),
+                        ),
                         ("cwd", &s.cwd.display().to_string()),
                     ],
                 ));
