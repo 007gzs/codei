@@ -1,6 +1,6 @@
 {
   "name": "@codei/codei-linux-arm64-musl",
-  "version": "0.0.8",
+  "version": "0.0.9",
   "description": "Linux ARM64 (musl) binary for codei",
   "os": ["linux"],
   "cpu": ["arm64"],
