@@ -20,8 +20,8 @@ uuid = { workspace = true }
 chrono = { workspace = true }
 rusqlite = { workspace = true }
 directories = { workspace = true }
-codei-config = { path = "../codei-config" }
-codei-llm = { path = "../codei-llm" }
+codei-config = { workspace = true }
+codei-llm = { workspace = true }
 
 [dev-dependencies]
 tempfile = { workspace = true }

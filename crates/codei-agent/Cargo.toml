@@ -20,11 +20,11 @@ async-trait = { workspace = true }
 tokio = { workspace = true }
 tracing = { workspace = true }
 futures-util = { workspace = true }
-codei-config = { path = "../codei-config" }
-codei-llm = { path = "../codei-llm" }
-codei-session = { path = "../codei-session" }
-codei-tools = { path = "../codei-tools" }
-codei-mcp = { path = "../codei-mcp" }
+codei-config = { workspace = true }
+codei-llm = { workspace = true }
+codei-session = { workspace = true }
+codei-tools = { workspace = true }
+codei-mcp = { workspace = true }
 tempfile = { workspace = true }
 
 [dev-dependencies]

@@ -15,12 +15,12 @@ workspace = true
 [dependencies]
 tokio = { workspace = true }
 thiserror = { workspace = true }
-codei-config = { path = "../codei-config" }
-codei-agent = { path = "../codei-agent" }
-codei-llm = { path = "../codei-llm" }
-codei-session = { path = "../codei-session" }
-codei-tools = { path = "../codei-tools" }
-codei-mcp = { path = "../codei-mcp" }
+codei-config = { workspace = true }
+codei-agent = { workspace = true }
+codei-llm = { workspace = true }
+codei-session = { workspace = true }
+codei-tools = { workspace = true }
+codei-mcp = { workspace = true }
 
 [[example]]
 name = "run_prompt"

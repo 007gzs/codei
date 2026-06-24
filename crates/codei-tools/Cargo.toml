@@ -26,9 +26,9 @@ grep-matcher = { workspace = true }
 similar = { workspace = true }
 glob = { workspace = true }
 uuid = { workspace = true }
-codei-config = { path = "../codei-config" }
-codei-llm = { path = "../codei-llm" }
-codei-mcp = { path = "../codei-mcp" }
+codei-config = { workspace = true }
+codei-llm = { workspace = true }
+codei-mcp = { workspace = true }
 
 [dev-dependencies]
 tempfile = { workspace = true }
