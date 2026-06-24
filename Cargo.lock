@@ -365,6 +365,7 @@ dependencies = [
 name = "codei-commands"
 version = "0.0.8"
 dependencies = [
+ "codei-config",
  "codei-i18n",
  "codei-session",
  "thiserror 1.0.69",

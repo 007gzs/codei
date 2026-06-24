@@ -19,6 +19,8 @@ pub enum SlashCommand {
     CopyLast,
     Language(String),
     Tokens,
+    SkillList,
+    SkillShow(String),
     Unknown(String),
 }
 
@@ -61,6 +63,26 @@ pub fn parse_input(line: &str) -> Input {
             Input::SlashCommand(SlashCommand::Language(language))
         }
         "/tokens" => Input::SlashCommand(SlashCommand::Tokens),
+        "/skill" | "/skills" => match parts.next().map(str::to_ascii_lowercase).as_deref() {
+            None | Some("list") => Input::SlashCommand(SlashCommand::SkillList),
+            Some("show") => {
+                let name = parts.collect::<Vec<_>>().join(" ");
+                if name.is_empty() {
+                    Input::SlashCommand(SlashCommand::Unknown(trimmed.to_string()))
+                } else {
+                    Input::SlashCommand(SlashCommand::SkillShow(name))
+                }
+            }
+            Some(first) => {
+                let rest = parts.collect::<Vec<_>>().join(" ");
+                let name = if rest.is_empty() {
+                    first.to_string()
+                } else {
+                    format!("{first} {rest}")
+                };
+                Input::SlashCommand(SlashCommand::SkillShow(name))
+            }
+        },
         "/session" => match parts.next().map(str::to_ascii_lowercase).as_deref() {
             Some("list") => Input::SlashCommand(SlashCommand::SessionList),
             Some("new") => Input::SlashCommand(SlashCommand::SessionNew),
@@ -132,6 +154,22 @@ mod tests {
         assert!(matches!(
             parse_input("/tokens"),
             Input::SlashCommand(SlashCommand::Tokens)
+        ));
+    }
+
+    #[test]
+    fn parses_skill_commands() {
+        assert!(matches!(
+            parse_input("/skill list"),
+            Input::SlashCommand(SlashCommand::SkillList)
+        ));
+        assert!(matches!(
+            parse_input("/skill show commit-messages"),
+            Input::SlashCommand(SlashCommand::SkillShow(s)) if s == "commit-messages"
+        ));
+        assert!(matches!(
+            parse_input("/skill commit-messages"),
+            Input::SlashCommand(SlashCommand::SkillShow(s)) if s == "commit-messages"
         ));
     }
 }

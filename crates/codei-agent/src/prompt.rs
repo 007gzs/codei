@@ -2,12 +2,22 @@ use std::env;
 use std::fs;
 use std::path::Path;
 
-use codei_config::ResolvedConfig;
+use codei_config::{format_skills_for_prompt, ResolvedConfig};
 
-pub fn build_system_prompt(config: &ResolvedConfig, project_instructions: &str) -> String {
+pub fn build_system_prompt(
+    config: &ResolvedConfig,
+    project_instructions: &str,
+    skills: &[codei_config::Skill],
+) -> String {
     let cwd = config.cwd.display();
     let os = env::consts::OS;
     let language = &config.config.defaults.language;
+    let skills_section = format_skills_for_prompt(skills);
+    let skills_block = if skills_section.is_empty() {
+        String::new()
+    } else {
+        format!("\n\n{skills_section}")
+    };
 
     format!(
         r#"You are CodeI, an AI coding assistant running in the user's local terminal.
@@ -19,12 +29,14 @@ pub fn build_system_prompt(config: &ResolvedConfig, project_instructions: &str) 
 
 ## Project instructions
 {project_instructions}
+{skills_block}
 
 ## Tool usage
 - Read relevant files before editing code
 - Prefer specialized tools over shell for file operations
 - When using edit, ensure old_string matches exactly once
 - Do not make unrelated changes the user did not ask for
+- Use `read_skill` to load matching skills before specialized work
 
 ## Output
 - Communicate with the user in {language}

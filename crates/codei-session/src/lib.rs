@@ -6,7 +6,9 @@ mod error;
 mod model;
 mod store;
 
-pub use compact::{compact_messages, estimate_tokens, TokenBudget};
+pub use compact::{
+    compact_messages, estimate_tokens, format_transcript, should_compact_session, TokenBudget,
+};
 pub use context::ContextBuilder;
 pub use error::SessionError;
 pub use model::{

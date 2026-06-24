@@ -1,5 +1,6 @@
 //! Agent loop orchestrating LLM, tools, and session.
 
+mod compact;
 mod error;
 mod event;
 mod loop_;

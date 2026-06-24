@@ -6,6 +6,7 @@ mod mcp;
 mod model;
 mod paths;
 mod plugins;
+mod skills;
 mod template;
 
 pub use error::ConfigError;
@@ -23,4 +24,7 @@ pub use paths::{
     user_config_path, user_log_dir,
 };
 pub use plugins::{load_plugins, run_hooks, HookConfig, HookEvent, PluginsConfig};
+pub use skills::{
+    discover_skills, find_skill, format_skills_for_prompt, read_skill_body, Skill, SkillSource,
+};
 pub use template::{default_config_template, init_user_config};

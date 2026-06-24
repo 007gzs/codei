@@ -22,6 +22,7 @@ use serde_json::json;
 pub fn default_registry(config: &codei_config::ResolvedConfig) -> ToolRegistry {
     let mut registry = ToolRegistry::new();
     registry.register(Box::new(builtin::ReadTool));
+    registry.register(Box::new(builtin::ReadSkillTool));
     registry.register(Box::new(builtin::WriteTool));
     registry.register(Box::new(builtin::EditTool));
     registry.register(Box::new(builtin::GlobTool));

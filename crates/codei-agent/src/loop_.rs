@@ -1,6 +1,6 @@
 use std::sync::{Arc, RwLock};
 
-use codei_config::{load_plugins, run_hooks, HookEvent, ResolvedConfig};
+use codei_config::{discover_skills, load_plugins, run_hooks, HookEvent, ResolvedConfig};
 use codei_llm::{create_provider_by_name, ChatRequest, LlmProvider, StreamEvent, ToolCall, Usage};
 use codei_mcp::McpManager;
 use codei_session::{ContextBuilder, Session, SessionStore, ToolCallRecord};
@@ -45,7 +45,8 @@ impl AgentLoop {
         events: Option<UnboundedSender<AgentEvent>>,
     ) -> Self {
         let project = load_project_instructions(&config);
-        let system_prompt = build_system_prompt(&config, &project);
+        let skills = discover_skills(&config);
+        let system_prompt = build_system_prompt(&config, &project, &skills);
         let max_tool_rounds = config.config.agent.max_tool_rounds_per_turn;
         let max_sub_rounds = (max_tool_rounds / 2).clamp(3, 12);
 
@@ -97,6 +98,22 @@ impl AgentLoop {
         Arc::clone(&self.provider_name)
     }
 
+    pub fn config(&self) -> &ResolvedConfig {
+        &self.config
+    }
+
+    pub fn model(&self) -> Arc<RwLock<String>> {
+        Arc::clone(&self.model)
+    }
+
+    pub fn provider(&self) -> Arc<RwLock<Arc<dyn LlmProvider>>> {
+        Arc::clone(&self.provider)
+    }
+
+    pub(crate) fn system_prompt(&self) -> &str {
+        &self.system_prompt
+    }
+
     pub fn set_provider(&self, name: &str) -> Result<(), AgentError> {
         let provider = create_provider_by_name(&self.config, name)?;
         *self
@@ -138,6 +155,13 @@ impl AgentLoop {
                 return Err(AgentError::MaxToolRounds);
             }
             rounds += 1;
+
+            if self.compact_session_if_needed(session, store).await? {
+                debug!(
+                    keep = self.config.config.agent.compaction_keep_messages,
+                    "session auto-compacted with LLM summary"
+                );
+            }
 
             let model = self.model.read().expect("model lock poisoned").clone();
             let provider = self

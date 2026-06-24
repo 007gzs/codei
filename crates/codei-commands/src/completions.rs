@@ -56,6 +56,14 @@ const HINTS: &[SlashHint] = &[
         description_key: "slash_tokens_desc",
     },
     SlashHint {
+        command: "/skill list",
+        description_key: "slash_skill_list_desc",
+    },
+    SlashHint {
+        command: "/skill show",
+        description_key: "slash_skill_show_desc",
+    },
+    SlashHint {
         command: "/session list",
         description_key: "slash_session_list_desc",
     },

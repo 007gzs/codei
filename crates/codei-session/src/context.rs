@@ -19,11 +19,7 @@ impl ContextBuilder {
     ) -> Vec<Message> {
         let messages = to_llm_messages(session, system_prompt);
         if let Some(cfg) = agent {
-            let budget = TokenBudget {
-                max_tokens: cfg.context_window_tokens,
-                compaction_threshold: cfg.compaction_threshold,
-            };
-            compact_messages(messages, budget)
+            compact_messages(messages, TokenBudget::from_agent(cfg))
         } else {
             messages
         }

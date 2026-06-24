@@ -14,5 +14,6 @@ workspace = true
 
 [dependencies]
 thiserror = { workspace = true }
+codei-config = { workspace = true }
 codei-session = { workspace = true }
 codei-i18n = { workspace = true }

@@ -8,6 +8,7 @@ authors.workspace = true
 description.workspace = true
 readme.workspace = true
 keywords.workspace = true
+build = "build.rs"
 
 [lints]
 workspace = true

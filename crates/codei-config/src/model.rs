@@ -87,7 +87,12 @@ pub struct AgentConfig {
     pub max_turns: u32,
     pub max_tool_rounds_per_turn: u32,
     pub context_window_tokens: u32,
+    /// Fraction of `context_window_tokens` that triggers automatic session compaction (0.0–1.0).
     pub compaction_threshold: f32,
+    /// Number of recent session messages to keep after compaction.
+    pub compaction_keep_messages: u32,
+    /// Max tokens for the LLM-generated compaction summary.
+    pub compaction_summary_max_tokens: u32,
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
@@ -190,6 +195,8 @@ impl Default for AgentConfig {
             max_tool_rounds_per_turn: 25,
             context_window_tokens: 128_000,
             compaction_threshold: 0.85,
+            compaction_keep_messages: 12,
+            compaction_summary_max_tokens: 2048,
         }
     }
 }
@@ -280,6 +287,10 @@ impl ResolvedConfig {
             return Err(crate::ConfigError::InvalidLanguage {
                 language: lang.clone(),
             });
+        }
+        let threshold = self.config.agent.compaction_threshold;
+        if !(0.0..=1.0).contains(&threshold) {
+            return Err(crate::ConfigError::InvalidCompactionThreshold { threshold });
         }
         Ok(())
     }

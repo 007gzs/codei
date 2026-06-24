@@ -12,7 +12,7 @@ pub use error::LlmError;
 pub use factory::{create_provider, create_provider_by_name};
 pub use message::{Message, Role, ToolCall};
 pub use provider::LlmProvider;
-pub use stream::{ChatStream, StreamEvent, Usage};
+pub use stream::{collect_response, ChatStream, StreamEvent, Usage};
 pub use tool::ToolDefinition;
 pub use tool_format::ToolFormat;
 

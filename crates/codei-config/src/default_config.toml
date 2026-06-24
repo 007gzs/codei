@@ -26,7 +26,12 @@ tool_format = "tools"
 max_turns = 50
 max_tool_rounds_per_turn = 25
 context_window_tokens = 128000
+# Auto-compact when estimated context tokens reach this fraction of context_window_tokens.
 compaction_threshold = 0.85
+# Recent messages kept in the session after auto-compaction.
+compaction_keep_messages = 12
+# Max tokens for the LLM summary produced during compaction.
+compaction_summary_max_tokens = 2048
 
 [tools.shell]
 enabled = true

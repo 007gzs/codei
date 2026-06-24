@@ -176,10 +176,13 @@ pub async fn run_tui(launch: InteractiveLaunch, opts: TuiOptions) -> Result<()> 
         cursor_visible: true,
         last_blink: Instant::now(),
         completion_index: 0,
+        slash_completion_dismissed: false,
         pending_quit: false,
         token_usage: Usage::default(),
         last_turn_usage: None,
         input_history: InputHistory::new(),
+        input_cursor: 0,
+        pending_cancel: false,
     };
 
     let mut runtime = AppRuntime {
@@ -230,10 +233,13 @@ struct AppState {
     cursor_visible: bool,
     last_blink: Instant,
     completion_index: usize,
+    slash_completion_dismissed: bool,
     pending_quit: bool,
     token_usage: Usage,
     last_turn_usage: Option<Usage>,
     input_history: InputHistory,
+    input_cursor: usize,
+    pending_cancel: bool,
 }
 
 async fn run_app(
@@ -308,10 +314,15 @@ async fn run_app(
             state.last_blink = Instant::now();
         }
 
-        let slash_hints = if state.input.contains('\n') {
+        let raw_slash_hints = if state.input.contains('\n') {
             Vec::new()
         } else {
             filter_slash_hints(&state.input)
+        };
+        let slash_hints = if state.slash_completion_dismissed {
+            Vec::new()
+        } else {
+            raw_slash_hints.clone()
         };
         if slash_hints.is_empty() {
             state.completion_index = 0;
@@ -391,7 +402,9 @@ async fn run_app(
             }
 
             let input_area = chunks[input_idx];
-            let input_title = if state.pending_quit {
+            let input_title = if state.pending_cancel {
+                t("tui_input_cancel")
+            } else if state.pending_quit {
                 t("tui_input_quit")
             } else if state.pending_approval.is_some() {
                 t("tui_input_approval")
@@ -408,9 +421,11 @@ async fn run_app(
                 && !state.running
                 && state.pending_approval.is_none()
                 && !state.pending_quit
+                && !state.pending_cancel
                 && input_area.width > 2
             {
-                let (cursor_x, cursor_y) = input_cursor_pos(&state.input, input_area);
+                let (cursor_x, cursor_y) =
+                    input_cursor_pos(&state.input, state.input_cursor, input_area);
                 frame.set_cursor_position((cursor_x, cursor_y));
             }
 
@@ -434,6 +449,8 @@ async fn run_app(
 
             if let Some(req) = &state.pending_approval {
                 render_approval_modal(frame, frame.area(), req);
+            } else if state.pending_cancel {
+                render_cancel_modal(frame, frame.area());
             } else if state.pending_quit {
                 render_quit_modal(frame, frame.area());
             }
@@ -444,7 +461,8 @@ async fn run_app(
                 Event::Paste(text)
                     if !state.running
                         && state.pending_approval.is_none()
-                        && !state.pending_quit =>
+                        && !state.pending_quit
+                        && !state.pending_cancel =>
                 {
                     insert_input_text(state, &text);
                     continue;
@@ -454,10 +472,27 @@ async fn run_app(
                     if state.pending_approval.is_some() {
                         runtime.approval_gate.respond(false).await;
                         state.pending_approval = None;
+                    } else if state.pending_cancel {
+                        cancel_running_turn(state);
+                    } else if state.running {
+                        state.pending_cancel = true;
                     } else if state.pending_quit {
                         break;
                     } else {
                         state.pending_quit = true;
+                    }
+                    continue;
+                }
+
+                if state.pending_cancel {
+                    match key.code {
+                        KeyCode::Char('y') | KeyCode::Char('Y') | KeyCode::Enter => {
+                            cancel_running_turn(state);
+                        }
+                        KeyCode::Char('n') | KeyCode::Char('N') | KeyCode::Esc => {
+                            state.pending_cancel = false;
+                        }
+                        _ => {}
                     }
                     continue;
                 }
@@ -479,6 +514,10 @@ async fn run_app(
                             runtime.approval_gate.respond(true).await;
                             state.pending_approval = None;
                         }
+                        KeyCode::Char('a') | KeyCode::Char('A') => {
+                            runtime.approval_gate.approve_always().await;
+                            state.pending_approval = None;
+                        }
                         KeyCode::Char('n') | KeyCode::Char('N') | KeyCode::Esc => {
                             runtime.approval_gate.respond(false).await;
                             state.pending_approval = None;
@@ -492,7 +531,7 @@ async fn run_app(
                     continue;
                 }
 
-                if !slash_hints.is_empty() {
+                if !raw_slash_hints.is_empty() && !state.slash_completion_dismissed {
                     match key.code {
                         KeyCode::Up => {
                             state.completion_index = state.completion_index.saturating_sub(1);
@@ -500,11 +539,16 @@ async fn run_app(
                         }
                         KeyCode::Down => {
                             state.completion_index = (state.completion_index + 1)
-                                .min(slash_hints.len().saturating_sub(1));
+                                .min(raw_slash_hints.len().saturating_sub(1));
                             continue;
                         }
                         KeyCode::Tab => {
-                            apply_slash_completion(state, slash_hints[state.completion_index]);
+                            apply_slash_completion(state, raw_slash_hints[state.completion_index]);
+                            continue;
+                        }
+                        KeyCode::Esc => {
+                            state.slash_completion_dismissed = true;
+                            state.completion_index = 0;
                             continue;
                         }
                         _ => {}
@@ -514,14 +558,26 @@ async fn run_app(
                 match key.code {
                     KeyCode::Up => {
                         if let Some(text) = state.input_history.browse_older(&state.input) {
+                            mark_input_edited(state);
                             state.input = text;
+                            state.input_cursor = state.input.len();
                         }
                         continue;
                     }
                     KeyCode::Down => {
                         if let Some(text) = state.input_history.browse_newer() {
+                            mark_input_edited(state);
                             state.input = text;
+                            state.input_cursor = state.input.len();
                         }
+                        continue;
+                    }
+                    KeyCode::Left => {
+                        state.input_cursor = prev_char_boundary(&state.input, state.input_cursor);
+                        continue;
+                    }
+                    KeyCode::Right => {
+                        state.input_cursor = next_char_boundary(&state.input, state.input_cursor);
                         continue;
                     }
                     KeyCode::PageUp => {
@@ -544,7 +600,9 @@ async fn run_app(
                     KeyCode::Esc => {
                         if !state.input.is_empty() {
                             state.input.clear();
+                            state.input_cursor = 0;
                             state.completion_index = 0;
+                            state.slash_completion_dismissed = false;
                             state.input_history.clear_browse();
                         }
                         continue;
@@ -564,11 +622,11 @@ async fn run_app(
                         continue;
                     }
                     KeyCode::Enter if key_inserts_newline(&key) => {
-                        state.input_history.clear_browse();
-                        state.input.push('\n');
+                        insert_newline_at_cursor(state);
                     }
                     KeyCode::Enter => {
                         let line = std::mem::take(&mut state.input);
+                        state.input_cursor = 0;
                         state.completion_index = 0;
                         state.input_history.clear_browse();
                         if line.trim().is_empty() {
@@ -617,38 +675,27 @@ async fn run_app(
                             }
                         }
                     }
-                    KeyCode::Backspace => {
-                        state.input_history.clear_browse();
-                        state.input.pop();
-                    }
-                    KeyCode::Delete => {
-                        state.input_history.clear_browse();
-                        state.input.pop();
-                    }
+                    KeyCode::Backspace => backspace_at_cursor(state),
+                    KeyCode::Delete => delete_at_cursor(state),
                     KeyCode::Char(c) => {
                         if key.modifiers.contains(KeyModifiers::CONTROL) {
                             if c == 'h' || c == '\x08' {
-                                state.input_history.clear_browse();
-                                state.input.pop();
+                                backspace_at_cursor(state);
                             } else if c == 'j' {
-                                state.input_history.clear_browse();
-                                state.input.push('\n');
+                                insert_newline_at_cursor(state);
                             }
                             continue;
                         }
                         if c == '\x7f' {
-                            state.input_history.clear_browse();
-                            state.input.pop();
+                            backspace_at_cursor(state);
                             continue;
                         }
                         if c == '\n' {
-                            state.input_history.clear_browse();
-                            state.input.push('\n');
+                            insert_newline_at_cursor(state);
                             continue;
                         }
                         if !c.is_control() {
-                            state.input_history.clear_browse();
-                            state.input.push(c);
+                            insert_char_at_cursor(state, c);
                         }
                     }
                     _ => {}
@@ -705,6 +752,11 @@ async fn poll_turn_task(state: &mut AppState) {
             state.status = t("tui_status_error");
             state.running = false;
         }
+        Err(err) if err.is_cancelled() => {
+            if state.running {
+                finish_cancel_turn(state);
+            }
+        }
         Err(err) => {
             state.lines.push(ChatLine {
                 text: t_fmt("tui_agent_task_failed", &[("message", &err.to_string())]),
@@ -730,9 +782,104 @@ fn normalize_line_endings(text: &str) -> String {
     text.replace("\r\n", "\n").replace('\r', "\n")
 }
 
+fn mark_input_edited(state: &mut AppState) {
+    state.slash_completion_dismissed = false;
+}
+
 fn insert_input_text(state: &mut AppState, text: &str) {
+    mark_input_edited(state);
     state.input_history.clear_browse();
-    state.input.push_str(&normalize_line_endings(text));
+    let pos = state.input_cursor.min(state.input.len());
+    let normalized = normalize_line_endings(text);
+    state.input.insert_str(pos, &normalized);
+    state.input_cursor = pos + normalized.len();
+}
+
+fn insert_char_at_cursor(state: &mut AppState, ch: char) {
+    mark_input_edited(state);
+    state.input_history.clear_browse();
+    let pos = state.input_cursor.min(state.input.len());
+    state.input.insert(pos, ch);
+    state.input_cursor = pos + ch.len_utf8();
+}
+
+fn insert_newline_at_cursor(state: &mut AppState) {
+    mark_input_edited(state);
+    state.input_history.clear_browse();
+    let pos = state.input_cursor.min(state.input.len());
+    state.input.insert(pos, '\n');
+    state.input_cursor = pos + 1;
+}
+
+fn backspace_at_cursor(state: &mut AppState) {
+    if state.input_cursor == 0 {
+        return;
+    }
+    mark_input_edited(state);
+    state.input_history.clear_browse();
+    let start = prev_char_boundary(&state.input, state.input_cursor);
+    state.input.drain(start..state.input_cursor);
+    state.input_cursor = start;
+}
+
+fn delete_at_cursor(state: &mut AppState) {
+    if state.input_cursor >= state.input.len() {
+        return;
+    }
+    mark_input_edited(state);
+    state.input_history.clear_browse();
+    let end = next_char_boundary(&state.input, state.input_cursor);
+    state.input.drain(state.input_cursor..end);
+}
+
+fn prev_char_boundary(text: &str, cursor: usize) -> usize {
+    let cursor = cursor.min(text.len());
+    if cursor == 0 {
+        return 0;
+    }
+    let mut pos = cursor - 1;
+    while pos > 0 && !text.is_char_boundary(pos) {
+        pos -= 1;
+    }
+    if !text.is_char_boundary(pos) {
+        return 0;
+    }
+    pos
+}
+
+fn next_char_boundary(text: &str, cursor: usize) -> usize {
+    let cursor = cursor.min(text.len());
+    if cursor >= text.len() {
+        return text.len();
+    }
+    let mut pos = cursor + 1;
+    while pos < text.len() && !text.is_char_boundary(pos) {
+        pos += 1;
+    }
+    pos
+}
+
+fn cancel_running_turn(state: &mut AppState) {
+    if let Some(task) = state.turn_task.take() {
+        task.abort();
+    }
+    finish_cancel_turn(state);
+    state.pending_cancel = false;
+}
+
+fn finish_cancel_turn(state: &mut AppState) {
+    state.running = false;
+    state.status = t("tui_status_idle");
+    state.assistant_buf.clear();
+    if let Some(last) = state.lines.last() {
+        if last.style == Style::default() && last.text.is_empty() {
+            state.lines.pop();
+        } else if let Some(last) = state.lines.last_mut() {
+            if last.style == Style::default() {
+                last.text.push_str(&format!("\n\n[{}]", t("tui_turn_cancelled")));
+            }
+        }
+    }
 }
 
 fn input_display_text(input: &str) -> Text<'static> {
@@ -764,20 +911,21 @@ fn input_box_height(text: &str) -> u16 {
     (line_count as u16 + 2).clamp(INPUT_MIN_HEIGHT, INPUT_MAX_HEIGHT)
 }
 
-fn input_cursor_pos(input: &str, area: Rect) -> (u16, u16) {
+fn input_cursor_pos(input: &str, cursor: usize, area: Rect) -> (u16, u16) {
     let inner_left = area.x + 1;
     let inner_bottom = area.y + area.height.saturating_sub(2);
+    let cursor = cursor.min(input.len());
     if input.is_empty() {
         return (inner_left, area.y + 1);
     }
-    let visual_lines = input_display_lines(input).len();
-    let last_line = if input.ends_with('\n') {
-        ""
-    } else {
-        input.rsplit('\n').next().unwrap_or("")
-    };
-    let y = area.y + 1 + (visual_lines as u16).saturating_sub(1);
-    let x = inner_left + last_line.width() as u16;
+
+    let before = &input[..cursor];
+    let line_idx = before.chars().filter(|&c| c == '\n').count();
+    let line_start = before.rfind('\n').map(|i| i + 1).unwrap_or(0);
+    let col = input[line_start..cursor].width();
+
+    let y = area.y + 1 + line_idx as u16;
+    let x = inner_left + col as u16;
     let max_x = area.x + area.width.saturating_sub(2);
     (x.min(max_x), y.min(inner_bottom))
 }
@@ -842,10 +990,16 @@ fn last_assistant_text(lines: &[ChatLine]) -> Option<String> {
 }
 
 fn apply_slash_completion(state: &mut AppState, hint: &SlashHint) {
+    mark_input_edited(state);
     state.input = hint.command.to_string();
-    if matches!(hint.command, "/model" | "/provider" | "/session resume") {
+    if matches!(
+        hint.command,
+        "/model" | "/provider" | "/session resume" | "/skill show" | "/language"
+    ) {
         state.input.push(' ');
     }
+    state.input_cursor = state.input.len();
+    state.input_history.clear_browse();
 }
 
 fn render_slash_completions(
@@ -948,6 +1102,21 @@ fn wrap_text(text: &str, width: usize) -> Vec<String> {
         }
     }
     refined
+}
+
+fn render_cancel_modal(frame: &mut ratatui::Frame, area: Rect) {
+    let popup = centered_rect(60, 20, area);
+    frame.render_widget(Clear, popup);
+    let widget = Paragraph::new(t("tui_cancel_body"))
+        .wrap(Wrap { trim: false })
+        .style(Style::default().add_modifier(Modifier::BOLD))
+        .block(
+            Block::default()
+                .borders(Borders::ALL)
+                .title(t("tui_cancel_title"))
+                .style(Style::default().fg(Color::Yellow)),
+        );
+    frame.render_widget(widget, popup);
 }
 
 fn render_quit_modal(frame: &mut ratatui::Frame, area: Rect) {
@@ -1084,5 +1253,24 @@ mod tests {
 
     fn as_deref(value: &str) -> Option<String> {
         Some(value.to_string())
+    }
+
+    #[test]
+    fn input_cursor_pos_tracks_byte_offset() {
+        use ratatui::layout::Rect;
+
+        let area = Rect::new(0, 0, 40, 5);
+        let input = "ab\ncd";
+        let (x, y) = input_cursor_pos(input, 4, area);
+        assert_eq!(y, 2);
+        assert_eq!(x, 2);
+    }
+
+    #[test]
+    fn prev_char_boundary_skips_utf8() {
+        let text = "aéb";
+        let end = text.len();
+        let mid = prev_char_boundary(text, end);
+        assert_eq!(&text[..mid], "aé");
     }
 }

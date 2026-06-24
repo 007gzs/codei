@@ -38,7 +38,6 @@ pub enum StreamEvent {
 }
 
 /// Collect a chat stream into a single assistant response.
-#[allow(dead_code)]
 pub async fn collect_response<S>(mut stream: S) -> Result<AssistantResponse, crate::LlmError>
 where
     S: Stream<Item = Result<StreamEvent, crate::LlmError>> + Unpin,

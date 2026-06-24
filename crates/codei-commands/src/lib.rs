@@ -6,6 +6,7 @@ mod parse;
 pub use completions::{filter_slash_hints, SlashHint};
 pub use parse::{parse_input, Input, SlashCommand};
 
+use codei_config::AgentConfig;
 use codei_i18n::{locale, set_locale, t, t_fmt};
 use codei_session::Session;
 
@@ -40,6 +41,7 @@ pub fn execute_command(
     session: &mut Session,
     _current_model: &str,
     token_stats: Option<&TokenStats>,
+    _agent: &AgentConfig,
 ) -> CommandOutcome {
     match cmd {
         SlashCommand::Help => CommandOutcome::Help(help_text()),
@@ -48,16 +50,14 @@ pub fn execute_command(
             session.clear_messages();
             CommandOutcome::Cleared
         }
-        SlashCommand::Compact => {
-            session.compact(12);
-            CommandOutcome::Compacted
-        }
+        SlashCommand::Compact => CommandOutcome::Continue,
         SlashCommand::Model(name) => CommandOutcome::ModelChanged(name),
         SlashCommand::Provider(name) => CommandOutcome::ProviderChanged(name),
         SlashCommand::SessionList => CommandOutcome::SessionList,
         SlashCommand::SessionNew => CommandOutcome::SessionNew,
         SlashCommand::SessionResume(id) => CommandOutcome::SessionResume(id),
         SlashCommand::Copy | SlashCommand::CopyLast => CommandOutcome::Continue,
+        SlashCommand::SkillList | SlashCommand::SkillShow(_) => CommandOutcome::Continue,
         SlashCommand::Language(language) => {
             if language.is_empty() {
                 CommandOutcome::LanguageInfo(locale())
@@ -107,6 +107,8 @@ fn help_text() -> String {
         t("slash_help_provider"),
         t("slash_help_language"),
         t("slash_help_tokens"),
+        t("slash_help_skill_list"),
+        t("slash_help_skill_show"),
         t("slash_help_session_list"),
         t("slash_help_session_new"),
         t("slash_help_session_resume"),

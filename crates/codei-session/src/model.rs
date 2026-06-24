@@ -112,6 +112,30 @@ impl Session {
         self.touch();
     }
 
+    /// Replace older messages with a summary, keeping the most recent `keep_recent` entries.
+    pub fn compact_with_summary(&mut self, keep_recent: usize, summary: String) {
+        if self.messages.len() <= keep_recent {
+            return;
+        }
+        let remove = self.messages.len() - keep_recent;
+        self.messages.drain(0..remove);
+        let now = Utc::now();
+        self.messages.insert(
+            0,
+            StoredMessage {
+                id: Uuid::new_v4().to_string(),
+                role: Role::User,
+                content: MessageContent::Text(format!(
+                    "[Context summary — earlier conversation compressed]\n\n{summary}"
+                )),
+                tool_calls: None,
+                tool_call_id: None,
+                created_at: now,
+            },
+        );
+        self.touch();
+    }
+
     fn push_message(
         &mut self,
         role: Role,
