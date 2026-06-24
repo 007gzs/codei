@@ -322,7 +322,7 @@ dependencies = [
 
 [[package]]
 name = "codei"
-version = "0.0.6"
+version = "0.0.7"
 dependencies = [
  "anyhow",
  "clap",
@@ -344,7 +344,7 @@ dependencies = [
 
 [[package]]
 name = "codei-agent"
-version = "0.0.6"
+version = "0.0.7"
 dependencies = [
  "async-trait",
  "codei-config",
@@ -363,7 +363,7 @@ dependencies = [
 
 [[package]]
 name = "codei-commands"
-version = "0.0.6"
+version = "0.0.7"
 dependencies = [
  "codei-i18n",
  "codei-session",
@@ -372,7 +372,7 @@ dependencies = [
 
 [[package]]
 name = "codei-config"
-version = "0.0.6"
+version = "0.0.7"
 dependencies = [
  "directories",
  "figment",
@@ -385,7 +385,7 @@ dependencies = [
 
 [[package]]
 name = "codei-i18n"
-version = "0.0.6"
+version = "0.0.7"
 dependencies = [
  "rust-i18n",
  "thiserror 1.0.69",
@@ -393,7 +393,7 @@ dependencies = [
 
 [[package]]
 name = "codei-llm"
-version = "0.0.6"
+version = "0.0.7"
 dependencies = [
  "async-trait",
  "codei-config",
@@ -409,7 +409,7 @@ dependencies = [
 
 [[package]]
 name = "codei-mcp"
-version = "0.0.6"
+version = "0.0.7"
 dependencies = [
  "codei-config",
  "serde",
@@ -422,7 +422,7 @@ dependencies = [
 
 [[package]]
 name = "codei-sdk"
-version = "0.0.6"
+version = "0.0.7"
 dependencies = [
  "codei-agent",
  "codei-config",
@@ -436,7 +436,7 @@ dependencies = [
 
 [[package]]
 name = "codei-session"
-version = "0.0.6"
+version = "0.0.7"
 dependencies = [
  "chrono",
  "codei-config",
@@ -452,7 +452,7 @@ dependencies = [
 
 [[package]]
 name = "codei-tools"
-version = "0.0.6"
+version = "0.0.7"
 dependencies = [
  "async-trait",
  "codei-config",
@@ -475,7 +475,7 @@ dependencies = [
 
 [[package]]
 name = "codei-tui"
-version = "0.0.6"
+version = "0.0.7"
 dependencies = [
  "anyhow",
  "arboard",
