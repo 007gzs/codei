@@ -47,10 +47,7 @@ pub async fn handle_slash(cmd: SlashCommand, ctx: &mut SlashContext<'_>) -> Resu
                 )));
             };
             let body = read_skill_body(skill).unwrap_or_else(|err| err.to_string());
-            return Ok(SlashAction::Message(format!(
-                "# {}\n\n{body}",
-                skill.name
-            )));
+            return Ok(SlashAction::Message(format!("# {}\n\n{body}", skill.name)));
         }
         SlashCommand::Compact => {
             ctx.agent.compact_session(ctx.session, ctx.store).await?;
@@ -64,10 +61,7 @@ pub async fn handle_slash(cmd: SlashCommand, ctx: &mut SlashContext<'_>) -> Resu
         session_input: ctx.token_usage.input_tokens,
         session_output: ctx.token_usage.output_tokens,
         last_input: ctx.last_turn_usage.map(|u| u.input_tokens).unwrap_or(0),
-        last_output: ctx
-            .last_turn_usage
-            .map(|u| u.output_tokens)
-            .unwrap_or(0),
+        last_output: ctx.last_turn_usage.map(|u| u.output_tokens).unwrap_or(0),
     });
     let outcome = execute_command(
         cmd,

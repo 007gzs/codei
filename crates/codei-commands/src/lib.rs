@@ -79,7 +79,10 @@ pub fn execute_command(
                     &[
                         ("input", &stats.session_input.to_string()),
                         ("output", &stats.session_output.to_string()),
-                        ("total", &(stats.session_input + stats.session_output).to_string()),
+                        (
+                            "total",
+                            &(stats.session_input + stats.session_output).to_string(),
+                        ),
                         ("last_input", &stats.last_input.to_string()),
                         ("last_output", &stats.last_output.to_string()),
                     ],

@@ -32,7 +32,9 @@ pub enum ConfigError {
     #[error("invalid language {language}: expected zh-CN or en-US")]
     InvalidLanguage { language: String },
 
-    #[error("invalid agent.compaction_threshold {threshold}: expected a value between 0.0 and 1.0")]
+    #[error(
+        "invalid agent.compaction_threshold {threshold}: expected a value between 0.0 and 1.0"
+    )]
     InvalidCompactionThreshold { threshold: f32 },
 
     #[error("missing API key: set {env} or configure providers.*.api_key")]

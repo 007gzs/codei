@@ -151,11 +151,7 @@ mod tests {
             compaction_keep_messages: 6,
             ..Default::default()
         };
-        assert!(should_compact_session(
-            &session,
-            "system prompt",
-            &agent
-        ));
+        assert!(should_compact_session(&session, "system prompt", &agent));
     }
 
     #[test]

@@ -11,9 +11,8 @@ use codei_llm::Usage;
 use codei_session::{Session, SessionStore};
 use codei_tools::{handler_for_policy, ApprovalPolicy, SharedApprovalGate, ToolContext};
 use crossterm::event::{
-    self, DisableBracketedPaste, EnableBracketedPaste, Event, KeyCode, KeyEvent,
-    KeyModifiers, KeyboardEnhancementFlags, PopKeyboardEnhancementFlags,
-    PushKeyboardEnhancementFlags,
+    self, DisableBracketedPaste, EnableBracketedPaste, Event, KeyCode, KeyEvent, KeyModifiers,
+    KeyboardEnhancementFlags, PopKeyboardEnhancementFlags, PushKeyboardEnhancementFlags,
 };
 use crossterm::terminal::{
     disable_raw_mode, enable_raw_mode, EnterAlternateScreen, LeaveAlternateScreen,
@@ -442,7 +441,10 @@ async fn run_app(
                             .unwrap_or_else(|_| "?".into()),
                     ),
                     ("input_tokens", &state.token_usage.input_tokens.to_string()),
-                    ("output_tokens", &state.token_usage.output_tokens.to_string()),
+                    (
+                        "output_tokens",
+                        &state.token_usage.output_tokens.to_string(),
+                    ),
                 ],
             ));
             frame.render_widget(status_line, chunks[status_idx]);
@@ -468,238 +470,248 @@ async fn run_app(
                     continue;
                 }
                 Event::Key(key) => {
-                if key.modifiers.contains(KeyModifiers::CONTROL) && key.code == KeyCode::Char('c') {
-                    if state.pending_approval.is_some() {
-                        runtime.approval_gate.respond(false).await;
-                        state.pending_approval = None;
-                    } else if state.pending_cancel {
-                        cancel_running_turn(state);
-                    } else if state.running {
-                        state.pending_cancel = true;
-                    } else if state.pending_quit {
-                        break;
-                    } else {
-                        state.pending_quit = true;
-                    }
-                    continue;
-                }
-
-                if state.pending_cancel {
-                    match key.code {
-                        KeyCode::Char('y') | KeyCode::Char('Y') | KeyCode::Enter => {
-                            cancel_running_turn(state);
-                        }
-                        KeyCode::Char('n') | KeyCode::Char('N') | KeyCode::Esc => {
-                            state.pending_cancel = false;
-                        }
-                        _ => {}
-                    }
-                    continue;
-                }
-
-                if state.pending_quit {
-                    match key.code {
-                        KeyCode::Char('y') | KeyCode::Char('Y') | KeyCode::Enter => break,
-                        KeyCode::Char('n') | KeyCode::Char('N') | KeyCode::Esc => {
-                            state.pending_quit = false;
-                        }
-                        _ => {}
-                    }
-                    continue;
-                }
-
-                if state.pending_approval.is_some() {
-                    match key.code {
-                        KeyCode::Char('y') | KeyCode::Char('Y') => {
-                            runtime.approval_gate.respond(true).await;
-                            state.pending_approval = None;
-                        }
-                        KeyCode::Char('a') | KeyCode::Char('A') => {
-                            runtime.approval_gate.approve_always().await;
-                            state.pending_approval = None;
-                        }
-                        KeyCode::Char('n') | KeyCode::Char('N') | KeyCode::Esc => {
+                    if key.modifiers.contains(KeyModifiers::CONTROL)
+                        && key.code == KeyCode::Char('c')
+                    {
+                        if state.pending_approval.is_some() {
                             runtime.approval_gate.respond(false).await;
                             state.pending_approval = None;
+                        } else if state.pending_cancel {
+                            cancel_running_turn(state);
+                        } else if state.running {
+                            state.pending_cancel = true;
+                        } else if state.pending_quit {
+                            break;
+                        } else {
+                            state.pending_quit = true;
                         }
-                        _ => {}
+                        continue;
                     }
-                    continue;
-                }
 
-                if state.running {
-                    continue;
-                }
+                    if state.pending_cancel {
+                        match key.code {
+                            KeyCode::Char('y') | KeyCode::Char('Y') | KeyCode::Enter => {
+                                cancel_running_turn(state);
+                            }
+                            KeyCode::Char('n') | KeyCode::Char('N') | KeyCode::Esc => {
+                                state.pending_cancel = false;
+                            }
+                            _ => {}
+                        }
+                        continue;
+                    }
 
-                if !raw_slash_hints.is_empty() && !state.slash_completion_dismissed {
+                    if state.pending_quit {
+                        match key.code {
+                            KeyCode::Char('y') | KeyCode::Char('Y') | KeyCode::Enter => break,
+                            KeyCode::Char('n') | KeyCode::Char('N') | KeyCode::Esc => {
+                                state.pending_quit = false;
+                            }
+                            _ => {}
+                        }
+                        continue;
+                    }
+
+                    if state.pending_approval.is_some() {
+                        match key.code {
+                            KeyCode::Char('y') | KeyCode::Char('Y') => {
+                                runtime.approval_gate.respond(true).await;
+                                state.pending_approval = None;
+                            }
+                            KeyCode::Char('a') | KeyCode::Char('A') => {
+                                runtime.approval_gate.approve_always().await;
+                                state.pending_approval = None;
+                            }
+                            KeyCode::Char('n') | KeyCode::Char('N') | KeyCode::Esc => {
+                                runtime.approval_gate.respond(false).await;
+                                state.pending_approval = None;
+                            }
+                            _ => {}
+                        }
+                        continue;
+                    }
+
+                    if state.running {
+                        continue;
+                    }
+
+                    if !raw_slash_hints.is_empty() && !state.slash_completion_dismissed {
+                        match key.code {
+                            KeyCode::Up => {
+                                state.completion_index = state.completion_index.saturating_sub(1);
+                                continue;
+                            }
+                            KeyCode::Down => {
+                                state.completion_index = (state.completion_index + 1)
+                                    .min(raw_slash_hints.len().saturating_sub(1));
+                                continue;
+                            }
+                            KeyCode::Tab => {
+                                apply_slash_completion(
+                                    state,
+                                    raw_slash_hints[state.completion_index],
+                                );
+                                continue;
+                            }
+                            KeyCode::Esc => {
+                                state.slash_completion_dismissed = true;
+                                state.completion_index = 0;
+                                continue;
+                            }
+                            _ => {}
+                        }
+                    }
+
                     match key.code {
                         KeyCode::Up => {
-                            state.completion_index = state.completion_index.saturating_sub(1);
+                            if let Some(text) = state.input_history.browse_older(&state.input) {
+                                mark_input_edited(state);
+                                state.input = text;
+                                state.input_cursor = state.input.len();
+                            }
                             continue;
                         }
                         KeyCode::Down => {
-                            state.completion_index = (state.completion_index + 1)
-                                .min(raw_slash_hints.len().saturating_sub(1));
+                            if let Some(text) = state.input_history.browse_newer() {
+                                mark_input_edited(state);
+                                state.input = text;
+                                state.input_cursor = state.input.len();
+                            }
                             continue;
                         }
-                        KeyCode::Tab => {
-                            apply_slash_completion(state, raw_slash_hints[state.completion_index]);
+                        KeyCode::Left => {
+                            state.input_cursor =
+                                prev_char_boundary(&state.input, state.input_cursor);
+                            continue;
+                        }
+                        KeyCode::Right => {
+                            state.input_cursor =
+                                next_char_boundary(&state.input, state.input_cursor);
+                            continue;
+                        }
+                        KeyCode::PageUp => {
+                            scroll_chat(state, -3);
+                            continue;
+                        }
+                        KeyCode::PageDown => {
+                            scroll_chat(state, 3);
+                            continue;
+                        }
+                        KeyCode::Home => {
+                            state.chat_scroll = 0;
+                            state.chat_follow_bottom = false;
+                            continue;
+                        }
+                        KeyCode::End => {
+                            state.chat_follow_bottom = true;
                             continue;
                         }
                         KeyCode::Esc => {
-                            state.slash_completion_dismissed = true;
-                            state.completion_index = 0;
+                            if !state.input.is_empty() {
+                                state.input.clear();
+                                state.input_cursor = 0;
+                                state.completion_index = 0;
+                                state.slash_completion_dismissed = false;
+                                state.input_history.clear_browse();
+                            }
                             continue;
+                        }
+                        KeyCode::Char('y') | KeyCode::Char('Y')
+                            if key.modifiers.contains(KeyModifiers::CONTROL)
+                                && key.modifiers.contains(KeyModifiers::SHIFT) =>
+                        {
+                            copy_chat_with_status(state, CopyScope::All);
+                            continue;
+                        }
+                        KeyCode::Char('l') | KeyCode::Char('L')
+                            if key.modifiers.contains(KeyModifiers::CONTROL)
+                                && key.modifiers.contains(KeyModifiers::SHIFT) =>
+                        {
+                            copy_chat_with_status(state, CopyScope::LastAssistant);
+                            continue;
+                        }
+                        KeyCode::Enter if key_inserts_newline(&key) => {
+                            insert_newline_at_cursor(state);
+                        }
+                        KeyCode::Enter => {
+                            let line = std::mem::take(&mut state.input);
+                            state.input_cursor = 0;
+                            state.completion_index = 0;
+                            state.input_history.clear_browse();
+                            if line.trim().is_empty() {
+                                continue;
+                            }
+                            state.input_history.push(line.clone());
+                            state.chat_follow_bottom = true;
+                            state.lines.push(ChatLine {
+                                text: format_user_prompt(&line),
+                                style: Style::default().fg(Color::Green),
+                            });
+
+                            match parse_input(&line) {
+                                Input::SlashCommand(SlashCommand::Copy) => {
+                                    copy_chat_with_status(state, CopyScope::All);
+                                }
+                                Input::SlashCommand(SlashCommand::CopyLast) => {
+                                    copy_chat_with_status(state, CopyScope::LastAssistant);
+                                }
+                                Input::SlashCommand(cmd) => {
+                                    let mut session = runtime.session.lock().await;
+                                    let mut ctx = SlashContext {
+                                        session: &mut session,
+                                        store: &runtime.store,
+                                        model: &runtime.model,
+                                        provider_name: &runtime.provider_name,
+                                        agent: runtime.agent.as_ref(),
+                                        token_usage: &mut state.token_usage,
+                                        last_turn_usage: &mut state.last_turn_usage,
+                                    };
+                                    match handle_slash(cmd, &mut ctx).await? {
+                                        SlashAction::Exit => break,
+                                        SlashAction::Message(text) => state.lines.push(ChatLine {
+                                            text,
+                                            style: Style::default().fg(Color::Cyan),
+                                        }),
+                                        SlashAction::Continue => {}
+                                    }
+                                    state.model_name =
+                                        runtime.model.read().expect("model lock").clone();
+                                    state.provider_label = runtime
+                                        .provider_name
+                                        .read()
+                                        .expect("provider lock")
+                                        .clone();
+                                }
+                                Input::UserMessage(msg) => {
+                                    start_agent_turn(runtime, state, msg);
+                                }
+                            }
+                        }
+                        KeyCode::Backspace => backspace_at_cursor(state),
+                        KeyCode::Delete => delete_at_cursor(state),
+                        KeyCode::Char(c) => {
+                            if key.modifiers.contains(KeyModifiers::CONTROL) {
+                                if c == 'h' || c == '\x08' {
+                                    backspace_at_cursor(state);
+                                } else if c == 'j' {
+                                    insert_newline_at_cursor(state);
+                                }
+                                continue;
+                            }
+                            if c == '\x7f' {
+                                backspace_at_cursor(state);
+                                continue;
+                            }
+                            if c == '\n' {
+                                insert_newline_at_cursor(state);
+                                continue;
+                            }
+                            if !c.is_control() {
+                                insert_char_at_cursor(state, c);
+                            }
                         }
                         _ => {}
                     }
-                }
-
-                match key.code {
-                    KeyCode::Up => {
-                        if let Some(text) = state.input_history.browse_older(&state.input) {
-                            mark_input_edited(state);
-                            state.input = text;
-                            state.input_cursor = state.input.len();
-                        }
-                        continue;
-                    }
-                    KeyCode::Down => {
-                        if let Some(text) = state.input_history.browse_newer() {
-                            mark_input_edited(state);
-                            state.input = text;
-                            state.input_cursor = state.input.len();
-                        }
-                        continue;
-                    }
-                    KeyCode::Left => {
-                        state.input_cursor = prev_char_boundary(&state.input, state.input_cursor);
-                        continue;
-                    }
-                    KeyCode::Right => {
-                        state.input_cursor = next_char_boundary(&state.input, state.input_cursor);
-                        continue;
-                    }
-                    KeyCode::PageUp => {
-                        scroll_chat(state, -3);
-                        continue;
-                    }
-                    KeyCode::PageDown => {
-                        scroll_chat(state, 3);
-                        continue;
-                    }
-                    KeyCode::Home => {
-                        state.chat_scroll = 0;
-                        state.chat_follow_bottom = false;
-                        continue;
-                    }
-                    KeyCode::End => {
-                        state.chat_follow_bottom = true;
-                        continue;
-                    }
-                    KeyCode::Esc => {
-                        if !state.input.is_empty() {
-                            state.input.clear();
-                            state.input_cursor = 0;
-                            state.completion_index = 0;
-                            state.slash_completion_dismissed = false;
-                            state.input_history.clear_browse();
-                        }
-                        continue;
-                    }
-                    KeyCode::Char('y') | KeyCode::Char('Y')
-                        if key.modifiers.contains(KeyModifiers::CONTROL)
-                            && key.modifiers.contains(KeyModifiers::SHIFT) =>
-                    {
-                        copy_chat_with_status(state, CopyScope::All);
-                        continue;
-                    }
-                    KeyCode::Char('l') | KeyCode::Char('L')
-                        if key.modifiers.contains(KeyModifiers::CONTROL)
-                            && key.modifiers.contains(KeyModifiers::SHIFT) =>
-                    {
-                        copy_chat_with_status(state, CopyScope::LastAssistant);
-                        continue;
-                    }
-                    KeyCode::Enter if key_inserts_newline(&key) => {
-                        insert_newline_at_cursor(state);
-                    }
-                    KeyCode::Enter => {
-                        let line = std::mem::take(&mut state.input);
-                        state.input_cursor = 0;
-                        state.completion_index = 0;
-                        state.input_history.clear_browse();
-                        if line.trim().is_empty() {
-                            continue;
-                        }
-                        state.input_history.push(line.clone());
-                        state.chat_follow_bottom = true;
-                        state.lines.push(ChatLine {
-                            text: format_user_prompt(&line),
-                            style: Style::default().fg(Color::Green),
-                        });
-
-                        match parse_input(&line) {
-                            Input::SlashCommand(SlashCommand::Copy) => {
-                                copy_chat_with_status(state, CopyScope::All);
-                            }
-                            Input::SlashCommand(SlashCommand::CopyLast) => {
-                                copy_chat_with_status(state, CopyScope::LastAssistant);
-                            }
-                            Input::SlashCommand(cmd) => {
-                                let mut session = runtime.session.lock().await;
-                                let mut ctx = SlashContext {
-                                    session: &mut session,
-                                    store: &runtime.store,
-                                    model: &runtime.model,
-                                    provider_name: &runtime.provider_name,
-                                    agent: runtime.agent.as_ref(),
-                                    token_usage: &mut state.token_usage,
-                                    last_turn_usage: &mut state.last_turn_usage,
-                                };
-                                match handle_slash(cmd, &mut ctx).await? {
-                                    SlashAction::Exit => break,
-                                    SlashAction::Message(text) => state.lines.push(ChatLine {
-                                        text,
-                                        style: Style::default().fg(Color::Cyan),
-                                    }),
-                                    SlashAction::Continue => {}
-                                }
-                                state.model_name =
-                                    runtime.model.read().expect("model lock").clone();
-                                state.provider_label =
-                                    runtime.provider_name.read().expect("provider lock").clone();
-                            }
-                            Input::UserMessage(msg) => {
-                                start_agent_turn(runtime, state, msg);
-                            }
-                        }
-                    }
-                    KeyCode::Backspace => backspace_at_cursor(state),
-                    KeyCode::Delete => delete_at_cursor(state),
-                    KeyCode::Char(c) => {
-                        if key.modifiers.contains(KeyModifiers::CONTROL) {
-                            if c == 'h' || c == '\x08' {
-                                backspace_at_cursor(state);
-                            } else if c == 'j' {
-                                insert_newline_at_cursor(state);
-                            }
-                            continue;
-                        }
-                        if c == '\x7f' {
-                            backspace_at_cursor(state);
-                            continue;
-                        }
-                        if c == '\n' {
-                            insert_newline_at_cursor(state);
-                            continue;
-                        }
-                        if !c.is_control() {
-                            insert_char_at_cursor(state, c);
-                        }
-                    }
-                    _ => {}
-                }
                 }
                 _ => {}
             }
@@ -770,9 +782,9 @@ async fn poll_turn_task(state: &mut AppState) {
 
 fn key_inserts_newline(key: &KeyEvent) -> bool {
     match key.code {
-        KeyCode::Enter => key.modifiers.intersects(
-            KeyModifiers::SHIFT | KeyModifiers::ALT | KeyModifiers::CONTROL,
-        ),
+        KeyCode::Enter => key
+            .modifiers
+            .intersects(KeyModifiers::SHIFT | KeyModifiers::ALT | KeyModifiers::CONTROL),
         KeyCode::Char('\n') => true,
         _ => false,
     }
@@ -876,7 +888,8 @@ fn finish_cancel_turn(state: &mut AppState) {
             state.lines.pop();
         } else if let Some(last) = state.lines.last_mut() {
             if last.style == Style::default() {
-                last.text.push_str(&format!("\n\n[{}]", t("tui_turn_cancelled")));
+                last.text
+                    .push_str(&format!("\n\n[{}]", t("tui_turn_cancelled")));
             }
         }
     }

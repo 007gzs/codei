@@ -3,8 +3,8 @@ mod edit;
 mod glob;
 mod grep;
 mod list_dir;
-mod read_skill;
 mod read;
+mod read_skill;
 mod shell;
 mod write;
 

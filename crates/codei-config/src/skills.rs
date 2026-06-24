@@ -30,8 +30,16 @@ pub struct Skill {
 pub fn discover_skills(config: &ResolvedConfig) -> Vec<Skill> {
     let mut by_name: HashMap<String, Skill> = HashMap::new();
 
-    scan_and_merge(&mut by_name, &expand_tilde("~/.cursor/skills"), SkillSource::CursorUser);
-    scan_and_merge(&mut by_name, &user_config_dir().join("skills"), SkillSource::User);
+    scan_and_merge(
+        &mut by_name,
+        &expand_tilde("~/.cursor/skills"),
+        SkillSource::CursorUser,
+    );
+    scan_and_merge(
+        &mut by_name,
+        &user_config_dir().join("skills"),
+        SkillSource::User,
+    );
 
     if let Some(root) = &config.project_root {
         scan_and_merge(
@@ -39,7 +47,11 @@ pub fn discover_skills(config: &ResolvedConfig) -> Vec<Skill> {
             &root.join(".cursor/skills"),
             SkillSource::CursorProject,
         );
-        scan_and_merge(&mut by_name, &root.join(".codei/skills"), SkillSource::Project);
+        scan_and_merge(
+            &mut by_name,
+            &root.join(".codei/skills"),
+            SkillSource::Project,
+        );
     }
 
     let mut skills: Vec<_> = by_name.into_values().collect();
@@ -212,11 +224,7 @@ mod tests {
         };
 
         fs::create_dir_all(dir.path().join(".codei/skills")).unwrap();
-        fs::rename(
-            skill_dir,
-            dir.path().join(".codei/skills/pdf-helper"),
-        )
-        .unwrap();
+        fs::rename(skill_dir, dir.path().join(".codei/skills/pdf-helper")).unwrap();
 
         let skills = discover_skills(&config);
         assert_eq!(skills.len(), 1);
