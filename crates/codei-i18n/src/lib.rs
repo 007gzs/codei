@@ -49,21 +49,28 @@ pub fn t_fmt(key: &str, args: &[(&str, &str)]) -> String {
 #[cfg(test)]
 mod tests {
     use super::*;
+    use std::sync::Mutex;
+
+    // rust_i18n::set_locale is process-global; serialize locale tests.
+    static LOCALE_TEST_LOCK: Mutex<()> = Mutex::new(());
 
     #[test]
     fn loads_chinese_locale() {
+        let _guard = LOCALE_TEST_LOCK.lock().unwrap();
         set_locale("zh-CN").unwrap();
         assert!(t("greeting").contains("你好"));
     }
 
     #[test]
     fn loads_english_locale() {
+        let _guard = LOCALE_TEST_LOCK.lock().unwrap();
         set_locale("en-US").unwrap();
         assert!(t("greeting").contains("Hello"));
     }
 
     #[test]
     fn resolves_dynamic_keys() {
+        let _guard = LOCALE_TEST_LOCK.lock().unwrap();
         set_locale("zh-CN").unwrap();
         assert!(t("tui_input_normal").contains("输入"));
         set_locale("en-US").unwrap();
