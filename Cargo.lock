@@ -464,6 +464,7 @@ dependencies = [
  "grep-regex",
  "grep-searcher",
  "ignore",
+ "reqwest",
  "serde",
  "serde_json",
  "similar",

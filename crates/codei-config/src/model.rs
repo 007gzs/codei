@@ -99,9 +99,42 @@ pub struct AgentConfig {
 pub struct ToolsConfig {
     pub shell: ShellToolConfig,
     pub write: EnabledToolConfig,
-    pub web_search: EnabledToolConfig,
+    #[serde(default)]
+    pub web_search: WebSearchToolConfig,
+    #[serde(default)]
+    pub web_fetch: WebFetchToolConfig,
     #[serde(default)]
     pub grep: GrepToolConfig,
+}
+
+#[derive(Debug, Clone, Copy, Serialize, Deserialize, PartialEq, Eq, Default)]
+#[serde(rename_all = "snake_case")]
+pub enum WebSearchProvider {
+    #[default]
+    Duckduckgo,
+    Searxng,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct WebSearchToolConfig {
+    pub enabled: bool,
+    pub provider: WebSearchProvider,
+    pub timeout_secs: u64,
+    pub max_results: usize,
+    #[serde(default)]
+    pub searxng_url: Option<String>,
+    #[serde(default = "default_ssrf_protection")]
+    pub ssrf_protection: bool,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct WebFetchToolConfig {
+    pub enabled: bool,
+    pub timeout_secs: u64,
+    pub max_bytes: usize,
+    /// When true, block localhost, private IPs, and link-local addresses.
+    #[serde(default = "default_ssrf_protection")]
+    pub ssrf_protection: bool,
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
@@ -211,10 +244,39 @@ impl Default for ToolsConfig {
                 allowlist: Vec::new(),
             },
             write: EnabledToolConfig { enabled: true },
-            web_search: EnabledToolConfig { enabled: false },
+            web_search: WebSearchToolConfig::default(),
+            web_fetch: WebFetchToolConfig::default(),
             grep: GrepToolConfig::default(),
         }
     }
+}
+
+impl Default for WebSearchToolConfig {
+    fn default() -> Self {
+        Self {
+            enabled: false,
+            provider: WebSearchProvider::Duckduckgo,
+            timeout_secs: 30,
+            max_results: 10,
+            searxng_url: None,
+            ssrf_protection: true,
+        }
+    }
+}
+
+impl Default for WebFetchToolConfig {
+    fn default() -> Self {
+        Self {
+            enabled: true,
+            timeout_secs: 30,
+            max_bytes: 512 * 1024,
+            ssrf_protection: true,
+        }
+    }
+}
+
+fn default_ssrf_protection() -> bool {
+    true
 }
 
 impl Default for GrepToolConfig {

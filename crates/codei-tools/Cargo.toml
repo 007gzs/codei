@@ -29,6 +29,7 @@ uuid = { workspace = true }
 codei-config = { workspace = true }
 codei-llm = { workspace = true }
 codei-mcp = { workspace = true }
+reqwest = { workspace = true }
 
 [dev-dependencies]
 tempfile = { workspace = true }

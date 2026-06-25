@@ -34,6 +34,23 @@ pub fn default_registry(config: &codei_config::ResolvedConfig) -> ToolRegistry {
     )));
     registry.register(Box::new(builtin::ListDirTool));
     registry.register(Box::new(builtin::DefinitionTool));
+    if config.config.tools.web_fetch.enabled {
+        registry.register(Box::new(builtin::WebFetchTool::new(
+            config.config.tools.web_fetch.timeout_secs,
+            config.config.tools.web_fetch.max_bytes,
+            config.config.tools.web_fetch.ssrf_protection,
+        )));
+    }
+    if config.config.tools.web_search.enabled {
+        let ws = &config.config.tools.web_search;
+        registry.register(Box::new(builtin::WebSearchTool::new(
+            ws.provider,
+            ws.timeout_secs,
+            ws.max_results,
+            ws.searxng_url.clone(),
+            ws.ssrf_protection,
+        )));
+    }
     registry
 }
 

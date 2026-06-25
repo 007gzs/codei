@@ -68,7 +68,9 @@ pub fn cap_output_tokens(
 
     // Slack covers tokenizer variance and underestimate from the chars/4 heuristic.
     let slack = (input_est / 6).max(MIN_SLACK);
-    let available = context_window.saturating_sub(input_est).saturating_sub(slack);
+    let available = context_window
+        .saturating_sub(input_est)
+        .saturating_sub(slack);
 
     if available == 0 {
         return 1;

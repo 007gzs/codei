@@ -6,6 +6,9 @@ mod list_dir;
 mod read;
 mod read_skill;
 mod shell;
+mod web_common;
+mod web_fetch;
+mod web_search;
 mod write;
 
 pub use definition::DefinitionTool;
@@ -16,4 +19,6 @@ pub use list_dir::ListDirTool;
 pub use read::ReadTool;
 pub use read_skill::ReadSkillTool;
 pub use shell::ShellTool;
+pub use web_fetch::WebFetchTool;
+pub use web_search::WebSearchTool;
 pub use write::WriteTool;

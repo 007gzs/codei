@@ -33,8 +33,8 @@ pub async fn run(cli: Cli) -> Result<()> {
 }
 
 fn run_session_command(resolved: &ResolvedConfig, command: SessionCommands) -> Result<()> {
-    let store = SessionStore::open_for_config(&resolved.config.session)
-        .context("open session store")?;
+    let store =
+        SessionStore::open_for_config(&resolved.config.session).context("open session store")?;
     match command {
         SessionCommands::List { limit } => {
             let sessions = store.list(limit)?;

@@ -26,9 +26,9 @@ impl SessionStore {
     pub fn open_for_config(config: &SessionConfig) -> Result<Self, SessionError> {
         let dir = expand_tilde(&config.dir);
         let backend = match config.storage {
-            SessionStorage::Sqlite => Backend::Sqlite(SqliteSessionStore::open(
-                &resolve_sqlite_path(&dir),
-            )?),
+            SessionStorage::Sqlite => {
+                Backend::Sqlite(SqliteSessionStore::open(&resolve_sqlite_path(&dir))?)
+            }
             SessionStorage::Json => Backend::Json(JsonSessionStore::open(&dir)?),
         };
         Ok(Self { backend })
@@ -115,8 +115,8 @@ fn resolve_sqlite_path(dir: &Path) -> PathBuf {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use codei_config::SessionStorage;
     use crate::model::Session;
+    use codei_config::SessionStorage;
 
     #[test]
     fn open_json_backend() {

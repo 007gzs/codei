@@ -3,7 +3,7 @@ use std::sync::{Arc, RwLock};
 use codei_config::{discover_skills, load_plugins, run_hooks, HookEvent, ResolvedConfig};
 use codei_llm::{create_provider_by_name, ChatRequest, LlmProvider, StreamEvent, ToolCall, Usage};
 use codei_mcp::McpManager;
-use codei_session::{ContextBuilder, Session, SessionStore, ToolCallRecord, cap_output_tokens};
+use codei_session::{cap_output_tokens, ContextBuilder, Session, SessionStore, ToolCallRecord};
 use codei_tools::{
     default_registry, register_mcp_tools, tool_definitions, ToolContext, ToolRegistry,
 };
@@ -177,18 +177,12 @@ impl AgentLoop {
             let tools = Some(tool_definitions(&self.tools));
             let configured_max = self.config.config.defaults.max_tokens;
             let context_window = self.config.config.agent.context_window_tokens;
-            let max_tokens = cap_output_tokens(
-                &messages,
-                tools.as_deref(),
-                configured_max,
-                context_window,
-            );
+            let max_tokens =
+                cap_output_tokens(&messages, tools.as_deref(), configured_max, context_window);
             if max_tokens < configured_max {
                 debug!(
                     configured_max,
-                    max_tokens,
-                    context_window,
-                    "max_tokens capped to fit context window"
+                    max_tokens, context_window, "max_tokens capped to fit context window"
                 );
             }
             let request = ChatRequest {

@@ -44,6 +44,17 @@ enabled = true
 
 [tools.web_search]
 enabled = false
+provider = "duckduckgo"
+timeout_secs = 30
+max_results = 10
+# searxng_url = "http://localhost:8080"
+ssrf_protection = true
+
+[tools.web_fetch]
+enabled = true
+timeout_secs = 30
+max_bytes = 524288
+ssrf_protection = true
 
 [ui]
 theme = "auto"

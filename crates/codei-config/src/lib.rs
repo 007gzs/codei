@@ -18,6 +18,7 @@ pub use mcp::{
 pub use model::{
     AgentConfig, Config, DefaultsConfig, GrepToolConfig, ProviderConfig, ResolvedConfig,
     SessionConfig, SessionStorage, ShellSandboxMode, ToolsConfig, UiConfig, UiTheme,
+    WebFetchToolConfig, WebSearchProvider, WebSearchToolConfig,
 };
 pub use paths::{
     debug_log_path, discover_project_root, expand_tilde, project_config_path, user_config_dir,

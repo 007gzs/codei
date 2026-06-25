@@ -153,7 +153,11 @@ impl JsonSessionStore {
         Ok(messages)
     }
 
-    fn rewrite_messages(&self, path: &Path, messages: &[StoredMessage]) -> Result<(), SessionError> {
+    fn rewrite_messages(
+        &self,
+        path: &Path,
+        messages: &[StoredMessage],
+    ) -> Result<(), SessionError> {
         let tmp = path.with_extension("jsonl.tmp");
         {
             let mut file = File::create(&tmp)?;
