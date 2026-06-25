@@ -1199,11 +1199,12 @@ fn flush_assistant(lines: &mut [ChatLine], assistant_buf: &mut String) {
     let _ = lines;
 }
 
-fn truncate(s: &str, max: usize) -> String {
-    if s.len() <= max {
+fn truncate(s: &str, max_chars: usize) -> String {
+    if s.chars().count() <= max_chars {
         s.to_string()
     } else {
-        format!("{}...", &s[..max])
+        let truncated: String = s.chars().take(max_chars).collect();
+        format!("{truncated}...")
     }
 }
 
@@ -1285,5 +1286,13 @@ mod tests {
         let end = text.len();
         let mid = prev_char_boundary(text, end);
         assert_eq!(&text[..mid], "aé");
+    }
+
+    #[test]
+    fn truncate_respects_utf8_char_boundary() {
+        let text = "终端优先的 AI 编程 Agent";
+        let out = truncate(text, 5);
+        assert!(out.ends_with("..."));
+        assert_eq!(out.chars().count(), 5 + 3);
     }
 }
