@@ -59,10 +59,10 @@ pub async fn run_agent(cli: &Cli, resolved: ResolvedConfig) -> Result<()> {
     }
 
     let opts = TuiOptions {
-        auto_approve: cli.yes,
+        auto_approve: cli.auto_approve(),
     };
     let repl_opts = ReplOptions {
-        auto_approve: cli.yes,
+        auto_approve: cli.auto_approve(),
     };
 
     let launch = InteractiveLaunch {
@@ -88,7 +88,7 @@ async fn run_print(
     mcp: Option<Arc<McpManager>>,
     prompt: String,
 ) -> Result<()> {
-    let policy = if cli.yes {
+    let policy = if cli.auto_approve() {
         ApprovalPolicy::Never
     } else {
         ApprovalPolicy::OnDestructive

@@ -7,7 +7,8 @@ mod model;
 mod store;
 
 pub use compact::{
-    compact_messages, estimate_tokens, format_transcript, should_compact_session, TokenBudget,
+    cap_output_tokens, compact_messages, estimate_tokens, estimate_tool_defs_tokens,
+    format_transcript, should_compact_session, TokenBudget,
 };
 pub use context::ContextBuilder;
 pub use error::SessionError;

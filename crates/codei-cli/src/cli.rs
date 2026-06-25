@@ -33,6 +33,10 @@ pub struct Cli {
     #[arg(short, long)]
     pub yes: bool,
 
+    /// Auto-approve all tool calls (same as --yes).
+    #[arg(long)]
+    pub yolo: bool,
+
     /// Disable full-screen TUI; use line-based REPL.
     #[arg(long)]
     pub no_tui: bool,
@@ -91,6 +95,10 @@ pub enum ConfigCommands {
 }
 
 impl Cli {
+    pub fn auto_approve(&self) -> bool {
+        self.yes || self.yolo
+    }
+
     pub fn load_options(&self) -> codei_config::LoadOptions {
         codei_config::LoadOptions {
             cwd: self.cwd.clone(),

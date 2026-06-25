@@ -25,6 +25,7 @@ tool_format = "tools"
 [agent]
 max_turns = 50
 max_tool_rounds_per_turn = 25
+# Set to your model's context window (e.g. 128000); used for compaction and max_tokens capping.
 context_window_tokens = 128000
 # Auto-compact when estimated context tokens reach this fraction of context_window_tokens.
 compaction_threshold = 0.85

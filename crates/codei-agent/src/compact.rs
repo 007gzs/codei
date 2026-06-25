@@ -1,5 +1,5 @@
 use codei_llm::{collect_response, ChatRequest, LlmProvider, Message};
-use codei_session::{format_transcript, should_compact_session, Session, SessionStore};
+use codei_session::{format_transcript, should_compact_session, Session, SessionStore, cap_output_tokens};
 use tracing::warn;
 
 use crate::error::AgentError;
@@ -43,9 +43,16 @@ impl AgentLoop {
             .expect("provider lock poisoned")
             .clone();
         let language = &self.config().config.defaults.language;
-        let max_tokens = agent_cfg
-            .compaction_summary_max_tokens
-            .min(self.config().config.defaults.max_tokens);
+        let max_tokens = cap_output_tokens(
+            &[Message::system(SUMMARIZE_SYSTEM), Message::user(format!(
+                "Summarize the conversation below. Write the summary in {language}.\n\n{transcript}"
+            ))],
+            None,
+            agent_cfg
+                .compaction_summary_max_tokens
+                .min(self.config().config.defaults.max_tokens),
+            agent_cfg.context_window_tokens,
+        );
 
         let summary = match summarize_transcript(
             provider.as_ref(),

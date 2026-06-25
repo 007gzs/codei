@@ -41,6 +41,41 @@ pub fn estimate_tokens(messages: &[Message]) -> u32 {
         .sum()
 }
 
+/// Rough token estimate for tool definitions attached to a chat request.
+pub fn estimate_tool_defs_tokens(tools: &[codei_llm::ToolDefinition]) -> u32 {
+    tools
+        .iter()
+        .map(|d| {
+            let len = d.name.len() + d.description.len() + d.parameters.to_string().len();
+            len as u32 / 4 + 16
+        })
+        .sum()
+}
+
+/// Cap configured max output tokens so estimated input + output fits in the context window.
+pub fn cap_output_tokens(
+    messages: &[Message],
+    tools: Option<&[codei_llm::ToolDefinition]>,
+    configured_max: u32,
+    context_window: u32,
+) -> u32 {
+    const MIN_SLACK: u32 = 1024;
+
+    let mut input_est = estimate_tokens(messages);
+    if let Some(defs) = tools {
+        input_est += estimate_tool_defs_tokens(defs);
+    }
+
+    // Slack covers tokenizer variance and underestimate from the chars/4 heuristic.
+    let slack = (input_est / 6).max(MIN_SLACK);
+    let available = context_window.saturating_sub(input_est).saturating_sub(slack);
+
+    if available == 0 {
+        return 1;
+    }
+    configured_max.min(available)
+}
+
 /// Whether the session should be compacted based on estimated token usage.
 pub fn should_compact_session(session: &Session, system_prompt: &str, agent: &AgentConfig) -> bool {
     let budget = TokenBudget::from_agent(agent);
@@ -164,5 +199,18 @@ mod tests {
         assert_eq!(session.messages.len(), 3);
         assert!(session.messages[0].text().unwrap().contains("summary text"));
         assert!(session.messages[1].text().unwrap().contains("msg 3"));
+    }
+
+    #[test]
+    fn cap_output_tokens_fits_context_window() {
+        let content = "x".repeat(21505 * 4);
+        let messages = vec![Message::user(content)];
+        let context_window = 87040;
+        let configured_max = 65536;
+        let capped = cap_output_tokens(&messages, None, configured_max, context_window);
+        assert!(capped < configured_max);
+        let input_est = estimate_tokens(&messages);
+        let slack = (input_est / 6).max(1024);
+        assert!(input_est + slack + capped <= context_window);
     }
 }
