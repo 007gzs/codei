@@ -1,6 +1,6 @@
 {
   "name": "@codei/codei-linux-x64-musl",
-  "version": "0.0.10",
+  "version": "0.0.11",
   "description": "Linux x64 (musl) binary for codei",
   "os": ["linux"],
   "cpu": ["x64"],

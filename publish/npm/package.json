@@ -1,6 +1,6 @@
 {
   "name": "@codei/codei",
-  "version": "0.0.10",
+  "version": "0.0.11",
   "description": "终端优先的 AI 编程 Agent，用自然语言在本地仓库中读代码、改代码、跑命令、调试问题。",
   "bin": {
     "codei": "bin/codei.js"
@@ -13,12 +13,12 @@
     "postinstall": "node scripts/postinstall.js"
   },
   "optionalDependencies": {
-    "@codei/codei-linux-x64-musl": "0.0.10",
-    "@codei/codei-linux-arm64-musl": "0.0.10",
-    "@codei/codei-darwin-x64": "0.0.10",
-    "@codei/codei-darwin-arm64": "0.0.10",
-    "@codei/codei-win32-x64": "0.0.10",
-    "@codei/codei-win32-arm64": "0.0.10"
+    "@codei/codei-linux-x64-musl": "0.0.11",
+    "@codei/codei-linux-arm64-musl": "0.0.11",
+    "@codei/codei-darwin-x64": "0.0.11",
+    "@codei/codei-darwin-arm64": "0.0.11",
+    "@codei/codei-win32-x64": "0.0.11",
+    "@codei/codei-win32-arm64": "0.0.11"
   },
   "files": [
     "bin",
