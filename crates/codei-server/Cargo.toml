@@ -1,0 +1,37 @@
+[package]
+name = "codei-server"
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+repository.workspace = true
+authors.workspace = true
+description = "HTTP server for CodeI — web UI to create sessions and chat with the agent."
+keywords = ["codei", "ai-coding", "agent", "server"]
+
+[[bin]]
+name = "codei-server"
+path = "src/main.rs"
+
+[lints]
+workspace = true
+
+[dependencies]
+anyhow = { workspace = true }
+axum = { workspace = true }
+clap = { workspace = true }
+futures-util = { workspace = true }
+serde = { workspace = true }
+serde_json = { workspace = true }
+tokio = { workspace = true }
+tokio-stream = { workspace = true }
+tower = { workspace = true }
+tower-http = { workspace = true }
+tracing = { workspace = true }
+tracing-subscriber = { workspace = true }
+codei-agent = { workspace = true }
+codei-config = { workspace = true }
+codei-llm = { workspace = true }
+codei-mcp = { workspace = true }
+codei-session = { workspace = true }
+codei-tools = { workspace = true }
+chrono = { workspace = true }

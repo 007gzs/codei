@@ -51,6 +51,9 @@ glob = "0.3"
 tokio-stream = "0.1"
 unicode-width = "0.2"
 arboard = "3"
+axum = { version = "0.8", features = ["json"] }
+tower = "0.5"
+tower-http = { version = "0.6", features = ["cors", "trace"] }
 
 # Internal crates (path + version required for `cargo publish`)
 codei-config = { version = "0.0.11", path = "crates/codei-config" }
@@ -64,3 +67,4 @@ codei-agent = { version = "0.0.11", path = "crates/codei-agent" }
 codei-tui = { version = "0.0.11", path = "crates/codei-tui" }
 codei-sdk = { version = "0.0.11", path = "crates/codei-sdk" }
 codei = { version = "0.0.11", path = "crates/codei-cli" }
+codei-server = { version = "0.0.11", path = "crates/codei-server" }
