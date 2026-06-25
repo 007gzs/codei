@@ -22,7 +22,7 @@ pub async fn run(cli: Cli) -> Result<()> {
             ConfigCommands::Show => show_config(&resolved),
             ConfigCommands::Init => init_config(),
         },
-        Some(Commands::Session { command }) => run_session_command(command),
+        Some(Commands::Session { command }) => run_session_command(&resolved, command),
         Some(Commands::Mcp { command }) => run_mcp_command(command),
         Some(Commands::Version) => {
             println!("codei {}", env!("CARGO_PKG_VERSION"));
@@ -32,8 +32,9 @@ pub async fn run(cli: Cli) -> Result<()> {
     }
 }
 
-fn run_session_command(command: SessionCommands) -> Result<()> {
-    let store = SessionStore::open_default().context("open session store")?;
+fn run_session_command(resolved: &ResolvedConfig, command: SessionCommands) -> Result<()> {
+    let store = SessionStore::open_for_config(&resolved.config.session)
+        .context("open session store")?;
     match command {
         SessionCommands::List { limit } => {
             let sessions = store.list(limit)?;

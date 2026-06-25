@@ -137,7 +137,8 @@ impl CodeiClient {
         );
 
         let mut session = Session::new(self.config.cwd.clone());
-        let store = SessionStore::open_default().map_err(SdkError::Session)?;
+        let store = SessionStore::open_for_config(&self.config.config.session)
+            .map_err(SdkError::Session)?;
         let prompt = prompt.to_string();
 
         let session_id = session.id.clone();

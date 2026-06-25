@@ -3,33 +3,16 @@ use std::path::{Path, PathBuf};
 use std::sync::Mutex;
 
 use chrono::{DateTime, Utc};
-use codei_config::expand_tilde;
 use rusqlite::{params, Connection};
 
 use crate::error::SessionError;
 use crate::model::{MessageContent, Role, Session, StoredMessage};
 
-pub struct SessionStore {
+pub struct SqliteSessionStore {
     conn: Mutex<Connection>,
 }
 
-impl SessionStore {
-    fn conn(&self) -> Result<std::sync::MutexGuard<'_, Connection>, SessionError> {
-        self.conn.lock().map_err(|_| SessionError::LockPoisoned)
-    }
-    pub fn open_default() -> Result<Self, SessionError> {
-        let path = default_db_path();
-        if let Some(parent) = path.parent() {
-            fs::create_dir_all(parent)?;
-        }
-        let conn = Connection::open(path)?;
-        let store = Self {
-            conn: Mutex::new(conn),
-        };
-        store.init_schema()?;
-        Ok(store)
-    }
-
+impl SqliteSessionStore {
     pub fn open(path: &Path) -> Result<Self, SessionError> {
         if let Some(parent) = path.parent() {
             fs::create_dir_all(parent)?;
@@ -40,6 +23,10 @@ impl SessionStore {
         };
         store.init_schema()?;
         Ok(store)
+    }
+
+    fn conn(&self) -> Result<std::sync::MutexGuard<'_, Connection>, SessionError> {
+        self.conn.lock().map_err(|_| SessionError::LockPoisoned)
     }
 
     fn init_schema(&self) -> Result<(), SessionError> {
@@ -182,23 +169,6 @@ impl SessionStore {
         Ok(())
     }
 
-    pub fn export_jsonl(&self, id: &str) -> Result<String, SessionError> {
-        let session = self.load(id)?;
-        let mut lines = Vec::new();
-        for msg in &session.messages {
-            let line = serde_json::json!({
-                "id": msg.id,
-                "role": msg.role,
-                "content": msg.content,
-                "tool_calls": msg.tool_calls,
-                "tool_call_id": msg.tool_call_id,
-                "created_at": msg.created_at,
-            });
-            lines.push(serde_json::to_string(&line)?);
-        }
-        Ok(lines.join("\n"))
-    }
-
     fn load_messages(
         conn: &Connection,
         session_id: &str,
@@ -227,10 +197,6 @@ impl SessionStore {
         rows.collect::<Result<Vec<_>, _>>()
             .map_err(SessionError::from)
     }
-}
-
-fn default_db_path() -> PathBuf {
-    expand_tilde("~/.local/share/codei/sessions.db")
 }
 
 fn role_to_str(role: Role) -> &'static str {
@@ -266,7 +232,7 @@ mod tests {
     fn roundtrip_session() {
         let dir = tempfile::tempdir().unwrap();
         let db = dir.path().join("test.db");
-        let store = SessionStore::open(&db).unwrap();
+        let store = SqliteSessionStore::open(&db).unwrap();
 
         let mut session = Session::new(PathBuf::from("/tmp/project"));
         session.push_user("hello");
@@ -281,7 +247,7 @@ mod tests {
     #[test]
     fn list_does_not_deadlock() {
         let dir = tempfile::tempdir().unwrap();
-        let store = SessionStore::open(&dir.path().join("test.db")).unwrap();
+        let store = SqliteSessionStore::open(&dir.path().join("test.db")).unwrap();
 
         let mut session = Session::new(PathBuf::from("/tmp/project"));
         session.push_user("hello");

@@ -25,7 +25,8 @@ pub async fn run_agent(cli: &Cli, resolved: ResolvedConfig) -> Result<()> {
     let config = Arc::new(resolved);
     let provider_name = config.config.defaults.provider.clone();
     let provider = create_provider(&config).context("create LLM provider")?;
-    let store = SessionStore::open_default().context("open session store")?;
+    let store =
+        SessionStore::open_for_config(&config.config.session).context("open session store")?;
 
     let session = load_session(cli, &store, &config.cwd)?;
     let model = Arc::new(RwLock::new(config.config.defaults.model.clone()));
