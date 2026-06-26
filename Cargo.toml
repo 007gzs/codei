@@ -3,7 +3,7 @@ members = ["crates/*"]
 resolver = "2"
 
 [workspace.package]
-version = "0.0.12"
+version = "0.0.13"
 edition = "2021"
 license = "MIT OR Apache-2.0"
 repository = "https://github.com/007gzs/codei"
@@ -56,15 +56,15 @@ tower = "0.5"
 tower-http = { version = "0.6", features = ["cors", "trace"] }
 
 # Internal crates (path + version required for `cargo publish`)
-codei-config = { version = "0.0.12", path = "crates/codei-config" }
-codei-i18n = { version = "0.0.12", path = "crates/codei-i18n" }
-codei-llm = { version = "0.0.12", path = "crates/codei-llm" }
-codei-mcp = { version = "0.0.12", path = "crates/codei-mcp" }
-codei-session = { version = "0.0.12", path = "crates/codei-session" }
-codei-tools = { version = "0.0.12", path = "crates/codei-tools" }
-codei-commands = { version = "0.0.12", path = "crates/codei-commands" }
-codei-agent = { version = "0.0.12", path = "crates/codei-agent" }
-codei-tui = { version = "0.0.12", path = "crates/codei-tui" }
-codei-sdk = { version = "0.0.12", path = "crates/codei-sdk" }
-codei = { version = "0.0.12", path = "crates/codei-cli" }
-codei-server = { version = "0.0.12", path = "crates/codei-server" }
+codei-config = { version = "0.0.13", path = "crates/codei-config" }
+codei-i18n = { version = "0.0.13", path = "crates/codei-i18n" }
+codei-llm = { version = "0.0.13", path = "crates/codei-llm" }
+codei-mcp = { version = "0.0.13", path = "crates/codei-mcp" }
+codei-session = { version = "0.0.13", path = "crates/codei-session" }
+codei-tools = { version = "0.0.13", path = "crates/codei-tools" }
+codei-commands = { version = "0.0.13", path = "crates/codei-commands" }
+codei-agent = { version = "0.0.13", path = "crates/codei-agent" }
+codei-tui = { version = "0.0.13", path = "crates/codei-tui" }
+codei-sdk = { version = "0.0.13", path = "crates/codei-sdk" }
+codei = { version = "0.0.13", path = "crates/codei-cli" }
+codei-server = { version = "0.0.13", path = "crates/codei-server" }
