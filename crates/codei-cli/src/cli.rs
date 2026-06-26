@@ -82,6 +82,15 @@ pub enum Commands {
         #[command(subcommand)]
         command: McpCommands,
     },
+    /// Start the web UI server.
+    Server {
+        /// Host to bind
+        #[arg(long, default_value = "127.0.0.1")]
+        host: String,
+        /// Port to listen on
+        #[arg(short, long, default_value_t = 3000)]
+        port: u16,
+    },
     /// Print version information.
     Version,
 }

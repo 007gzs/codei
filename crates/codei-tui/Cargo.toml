@@ -26,5 +26,6 @@ codei-llm = { workspace = true }
 codei-session = { workspace = true }
 codei-tools = { workspace = true }
 codei-mcp = { workspace = true }
+codei-sdk = { workspace = true }
 unicode-width = { workspace = true }
 arboard = { workspace = true }

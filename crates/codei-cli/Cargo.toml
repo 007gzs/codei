@@ -29,3 +29,4 @@ codei-session = { workspace = true }
 codei-tools = { workspace = true }
 codei-tui = { workspace = true }
 codei-mcp = { workspace = true }
+codei-sdk = { workspace = true, features = ["server"] }

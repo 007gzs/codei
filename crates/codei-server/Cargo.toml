@@ -17,21 +17,6 @@ workspace = true
 
 [dependencies]
 anyhow = { workspace = true }
-axum = { workspace = true }
 clap = { workspace = true }
-futures-util = { workspace = true }
-serde = { workspace = true }
-serde_json = { workspace = true }
 tokio = { workspace = true }
-tokio-stream = { workspace = true }
-tower = { workspace = true }
-tower-http = { workspace = true }
-tracing = { workspace = true }
-tracing-subscriber = { workspace = true }
-codei-agent = { workspace = true }
-codei-config = { workspace = true }
-codei-llm = { workspace = true }
-codei-mcp = { workspace = true }
-codei-session = { workspace = true }
-codei-tools = { workspace = true }
-chrono = { workspace = true }
+codei-sdk = { workspace = true, features = ["server"] }

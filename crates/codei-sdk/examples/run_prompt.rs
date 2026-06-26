@@ -11,7 +11,7 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
         .nth(1)
         .unwrap_or_else(|| "List all Rust source files in the current directory.".into());
 
-    let client = CodeiClient::builder().auto_approve(true).build().await?;
+    let mut client = CodeiClient::builder().auto_approve(true).build().await?;
 
     let result = client
         .run_with_handler(&prompt, |event| match event {

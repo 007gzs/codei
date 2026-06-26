@@ -12,7 +12,23 @@ keywords.workspace = true
 [lints]
 workspace = true
 
+[features]
+default = []
+server = [
+    "dep:axum",
+    "dep:tower",
+    "dep:tower-http",
+    "dep:futures-util",
+    "dep:tokio-stream",
+    "dep:serde",
+    "dep:serde_json",
+    "dep:chrono",
+    "dep:tracing",
+    "dep:tracing-subscriber",
+]
+
 [dependencies]
+anyhow = { workspace = true }
 tokio = { workspace = true }
 thiserror = { workspace = true }
 codei-config = { workspace = true }
@@ -21,6 +37,16 @@ codei-llm = { workspace = true }
 codei-session = { workspace = true }
 codei-tools = { workspace = true }
 codei-mcp = { workspace = true }
+axum = { workspace = true, optional = true }
+tower = { workspace = true, optional = true }
+tower-http = { workspace = true, optional = true }
+futures-util = { workspace = true, optional = true }
+tokio-stream = { workspace = true, optional = true }
+serde = { workspace = true, optional = true }
+serde_json = { workspace = true, optional = true }
+chrono = { workspace = true, optional = true }
+tracing = { workspace = true, optional = true }
+tracing-subscriber = { workspace = true, optional = true }
 
 [[example]]
 name = "run_prompt"

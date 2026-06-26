@@ -1,62 +1,52 @@
-use std::sync::{Arc, RwLock};
+use std::sync::Arc;
 
 use anyhow::{Context, Result};
-use codei_agent::{AgentEvent, AgentLoop};
+use codei_agent::AgentEvent;
 use codei_config::ResolvedConfig;
-use codei_llm::create_provider;
-use codei_mcp::McpManager;
-use codei_session::{Session, SessionStore};
-use codei_tools::{handler_for_policy, ApprovalPolicy, ToolContext};
-use codei_tui::{run_repl, run_tui, InteractiveLaunch, ReplOptions, TuiOptions};
-use tokio::sync::mpsc;
+use codei_sdk::{
+    approval_policy, build_interactive_launch, resolve_session, run_turn_with_events,
+    InteractiveLaunch,
+};
+use codei_session::SessionStore;
+use codei_tui::{run_repl, run_tui, ReplOptions, TuiOptions};
+use tracing::info;
 
 use crate::cli::Cli;
 
-struct AgentRuntime {
-    config: Arc<ResolvedConfig>,
-    provider: Arc<dyn codei_llm::LlmProvider>,
-    provider_name: String,
-    model: Arc<RwLock<String>>,
-    session: Session,
-    store: SessionStore,
-}
-
 pub async fn run_agent(cli: &Cli, resolved: ResolvedConfig) -> Result<()> {
     let config = Arc::new(resolved);
-    let provider_name = config.config.defaults.provider.clone();
-    let provider = create_provider(&config).context("create LLM provider")?;
-    let store =
-        SessionStore::open_for_config(&config.config.session).context("open session store")?;
+    let store = Arc::new(
+        SessionStore::open_for_config(&config.config.session).context("open session store")?,
+    );
 
-    let session = load_session(cli, &store, &config.cwd)?;
-    let model = Arc::new(RwLock::new(config.config.defaults.model.clone()));
-    let mcp = McpManager::connect_optional().await;
-    if let Some(ref manager) = mcp {
-        tracing::info!(
+    let session = resolve_session(
+        store.as_ref(),
+        &config.cwd,
+        cli.resume.as_deref(),
+        cli.r#continue,
+    )
+    .context("load session")?;
+
+    let launch = build_interactive_launch(config, session, store).await?;
+
+    if let Some(ref manager) = launch.mcp {
+        info!(
             servers = manager.connections().len(),
             tools = manager.tool_count(),
             "MCP connected"
         );
     }
-    let runtime = AgentRuntime {
-        config,
-        provider,
-        provider_name,
-        model,
-        session,
-        store,
-    };
 
     if cli.print {
         let prompt = cli
             .prompt
             .clone()
             .context("print mode requires a prompt argument")?;
-        return run_print(cli, runtime, mcp, prompt).await;
+        return run_print(cli, launch, prompt).await;
     }
 
     if let Some(prompt) = cli.prompt.clone() {
-        return run_print(cli, runtime, mcp, prompt).await;
+        return run_print(cli, launch, prompt).await;
     }
 
     let opts = TuiOptions {
@@ -66,16 +56,6 @@ pub async fn run_agent(cli: &Cli, resolved: ResolvedConfig) -> Result<()> {
         auto_approve: cli.auto_approve(),
     };
 
-    let launch = InteractiveLaunch {
-        config: runtime.config,
-        provider: runtime.provider,
-        provider_name: runtime.provider_name,
-        model: runtime.model,
-        session: runtime.session,
-        store: runtime.store,
-        mcp,
-    };
-
     if cli.no_tui {
         run_repl(launch, repl_opts).await
     } else {
@@ -83,82 +63,29 @@ pub async fn run_agent(cli: &Cli, resolved: ResolvedConfig) -> Result<()> {
     }
 }
 
-async fn run_print(
-    cli: &Cli,
-    mut runtime: AgentRuntime,
-    mcp: Option<Arc<McpManager>>,
-    prompt: String,
-) -> Result<()> {
-    let policy = if cli.auto_approve() {
-        ApprovalPolicy::Never
-    } else {
-        ApprovalPolicy::OnDestructive
-    };
-    let (tx, mut rx) = mpsc::unbounded_channel();
-    let tool_ctx = ToolContext {
-        cwd: runtime.config.cwd.clone(),
-        config: Arc::clone(&runtime.config),
-        approval: Arc::from(handler_for_policy(policy)),
-    };
-    let agent = AgentLoop::new(
-        runtime.config,
-        runtime.model,
-        runtime.provider,
-        runtime.provider_name,
-        tool_ctx,
-        mcp,
-        Some(tx),
-    );
+async fn run_print(cli: &Cli, mut launch: InteractiveLaunch, prompt: String) -> Result<()> {
+    let policy = approval_policy(cli.auto_approve());
+    let runtime = launch.runtime();
 
-    let agent_task = async {
-        agent
-            .run_turn(&mut runtime.session, &prompt, &runtime.store)
-            .await
-            .context("agent turn failed")
-    };
-
-    tokio::pin!(agent_task);
-
-    loop {
-        tokio::select! {
-            event = rx.recv() => {
-                match event {
-                    Some(AgentEvent::AssistantDelta { text }) => print!("{text}"),
-                    Some(AgentEvent::ToolStarted { name, args }) => {
-                        eprintln!("\n[tool:{name}] {args}");
-                    }
-                    Some(AgentEvent::ToolFinished { name, result }) => {
-                        eprintln!("[tool:{name}] {}", result.content);
-                    }
-                    Some(AgentEvent::TurnComplete { .. }) => break,
-                    Some(AgentEvent::Error { message }) => {
-                        eprintln!("Error: {message}");
-                        break;
-                    }
-                    None => break,
-                }
+    run_turn_with_events(
+        &runtime,
+        &mut launch.session,
+        &prompt,
+        policy,
+        |event| match event {
+            AgentEvent::AssistantDelta { text } => print!("{text}"),
+            AgentEvent::ToolStarted { name, args } => {
+                eprintln!("\n[tool:{name}] {args}");
             }
-            result = &mut agent_task => {
-                result?;
-                break;
+            AgentEvent::ToolFinished { name, result } => {
+                eprintln!("[tool:{name}] {}", result.content);
             }
-        }
-    }
+            AgentEvent::TurnComplete { .. } => {}
+            AgentEvent::Error { message } => eprintln!("Error: {message}"),
+        },
+    )
+    .await?;
 
     println!();
     Ok(())
-}
-
-fn load_session(cli: &Cli, store: &SessionStore, cwd: &std::path::Path) -> Result<Session> {
-    if let Some(id) = &cli.resume {
-        return store
-            .load(id)
-            .with_context(|| format!("resume session {id}"));
-    }
-    if cli.r#continue {
-        if let Some(session) = store.latest()? {
-            return Ok(session);
-        }
-    }
-    Ok(Session::new(cwd.to_path_buf()))
 }

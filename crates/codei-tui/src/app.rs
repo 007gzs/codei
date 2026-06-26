@@ -187,7 +187,7 @@ pub async fn run_tui(launch: InteractiveLaunch, opts: TuiOptions) -> Result<()> 
     let mut runtime = AppRuntime {
         agent,
         session: Arc::new(Mutex::new(session)),
-        store: Arc::new(store),
+        store,
         config,
         model,
         provider_name,

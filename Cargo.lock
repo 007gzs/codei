@@ -384,6 +384,7 @@ dependencies = [
  "codei-i18n",
  "codei-llm",
  "codei-mcp",
+ "codei-sdk",
  "codei-session",
  "codei-tools",
  "codei-tui",
@@ -477,24 +478,9 @@ dependencies = [
 name = "codei-sdk"
 version = "0.0.11"
 dependencies = [
- "codei-agent",
- "codei-config",
- "codei-llm",
- "codei-mcp",
- "codei-session",
- "codei-tools",
- "thiserror 1.0.69",
- "tokio",
-]
-
-[[package]]
-name = "codei-server"
-version = "0.0.11"
-dependencies = [
  "anyhow",
  "axum",
  "chrono",
- "clap",
  "codei-agent",
  "codei-config",
  "codei-llm",
@@ -504,12 +490,23 @@ dependencies = [
  "futures-util",
  "serde",
  "serde_json",
+ "thiserror 1.0.69",
  "tokio",
  "tokio-stream",
  "tower",
  "tower-http",
  "tracing",
  "tracing-subscriber",
+]
+
+[[package]]
+name = "codei-server"
+version = "0.0.11"
+dependencies = [
+ "anyhow",
+ "clap",
+ "codei-sdk",
+ "tokio",
 ]
 
 [[package]]
@@ -564,6 +561,7 @@ dependencies = [
  "codei-i18n",
  "codei-llm",
  "codei-mcp",
+ "codei-sdk",
  "codei-session",
  "codei-tools",
  "crossterm",

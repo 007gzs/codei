@@ -84,7 +84,7 @@ pub async fn run_repl(launch: InteractiveLaunch, opts: ReplOptions) -> Result<()
             }
             Input::UserMessage(msg) if msg.is_empty() => {}
             Input::UserMessage(msg) => {
-                if let Err(err) = agent.run_turn(&mut session, &msg, &store).await {
+                if let Err(err) = agent.run_turn(&mut session, &msg, store.as_ref()).await {
                     writeln!(
                         stdout,
                         "{}",

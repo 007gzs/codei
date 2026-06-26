@@ -1,6 +1,7 @@
 use anyhow::{Context, Result};
 use codei_config::{init_user_config, load, load_mcp_config, ResolvedConfig};
 use codei_i18n::{self, t_fmt};
+use codei_sdk::{run_server, ServerOptions};
 use codei_session::SessionStore;
 
 use crate::agent::run_agent;
@@ -24,12 +25,29 @@ pub async fn run(cli: Cli) -> Result<()> {
         },
         Some(Commands::Session { command }) => run_session_command(&resolved, command),
         Some(Commands::Mcp { command }) => run_mcp_command(command),
+        Some(Commands::Server { ref host, port }) => {
+            run_server_command(&cli, host.clone(), port).await
+        }
         Some(Commands::Version) => {
             println!("codei {}", env!("CARGO_PKG_VERSION"));
             Ok(())
         }
         None => run_agent(&cli, resolved).await,
     }
+}
+
+async fn run_server_command(cli: &Cli, host: String, port: u16) -> Result<()> {
+    let default_cwd = cli
+        .cwd
+        .clone()
+        .unwrap_or_else(|| std::env::current_dir().expect("current directory"));
+    run_server(ServerOptions {
+        host,
+        port,
+        default_cwd,
+        verbose: cli.verbose,
+    })
+    .await
 }
 
 fn run_session_command(resolved: &ResolvedConfig, command: SessionCommands) -> Result<()> {

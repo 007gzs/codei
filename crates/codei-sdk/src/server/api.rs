@@ -13,19 +13,20 @@ use axum::{
     Json, Router,
 };
 use chrono::{DateTime, Utc};
-use codei_agent::{AgentEvent, AgentLoop};
+use codei_agent::AgentEvent;
 use codei_session::{Role, Session};
-use codei_tools::{handler_for_policy, ApprovalPolicy, ToolContext};
+use codei_tools::ApprovalPolicy;
 use futures_util::stream::{Stream, StreamExt};
 use serde::{Deserialize, Serialize};
 use tokio::sync::mpsc;
 use tokio_stream::wrappers::UnboundedReceiverStream;
 
-use crate::state::AppState;
+use crate::session::SessionService;
+use crate::turn::spawn_turn;
 
-const INDEX_HTML: &str = include_str!("../assets/index.html");
+const INDEX_HTML: &str = include_str!("../../assets/index.html");
 
-pub fn routes(default_cwd: PathBuf) -> axum::Router<Arc<AppState>> {
+pub fn routes(default_cwd: PathBuf) -> Router<Arc<SessionService>> {
     Router::new()
         .route("/", get(index))
         .route("/api/config", get(move || config(default_cwd.clone())))
@@ -65,38 +66,38 @@ struct SessionSummary {
 }
 
 async fn list_sessions(
-    State(state): State<Arc<AppState>>,
+    State(service): State<Arc<SessionService>>,
 ) -> Result<Json<Vec<SessionSummary>>, ApiError> {
-    let sessions = state.list_sessions().map_err(ApiError::storage)?;
+    let sessions = service.list_sessions().map_err(ApiError::storage)?;
     Ok(Json(
         sessions
             .iter()
-            .map(|session| session_to_summary(&state, session))
+            .map(|session| session_to_summary(&service, session))
             .collect(),
     ))
 }
 
 async fn create_session(
-    State(state): State<Arc<AppState>>,
+    State(service): State<Arc<SessionService>>,
     Json(req): Json<CreateSessionRequest>,
 ) -> Result<Json<SessionSummary>, ApiError> {
-    let session = state
+    let session = service
         .create_session(req.cwd.into())
         .await
         .map_err(ApiError::bad_request)?;
 
-    Ok(Json(session_to_summary(&state, &session)))
+    Ok(Json(session_to_summary(&service, &session)))
 }
 
 async fn get_session(
-    State(state): State<Arc<AppState>>,
+    State(service): State<Arc<SessionService>>,
     Path(id): Path<String>,
 ) -> Result<Json<SessionDetail>, ApiError> {
-    let active = state
+    let handle = service
         .get_or_load(&id)
         .await
         .map_err(|_| ApiError::not_found("session"))?;
-    let session = active.session.read().await;
+    let session = handle.session.read().await;
 
     let mut tool_names = std::collections::HashMap::new();
     for msg in &session.messages {
@@ -154,7 +155,7 @@ struct ChatRequest {
 }
 
 async fn chat(
-    State(state): State<Arc<AppState>>,
+    State(service): State<Arc<SessionService>>,
     Path(id): Path<String>,
     Json(req): Json<ChatRequest>,
 ) -> Result<Sse<impl Stream<Item = Result<Event, Infallible>>>, ApiError> {
@@ -163,46 +164,13 @@ async fn chat(
         return Err(ApiError::bad_request("message cannot be empty"));
     }
 
-    let active = state
+    let handle = service
         .get_or_load(&id)
         .await
         .map_err(|_| ApiError::not_found("session"))?;
-    let _guard = active.turn_lock.lock().await;
-
-    let config = Arc::clone(&active.config);
-    let model = Arc::clone(&active.model);
-    let provider = Arc::clone(&active.provider);
-    let provider_name = active.provider_name.clone();
-    let mcp = active.mcp.clone();
 
     let (tx, rx) = mpsc::unbounded_channel();
-    let tool_ctx = ToolContext {
-        cwd: config.cwd.clone(),
-        config: Arc::clone(&config),
-        approval: Arc::from(handler_for_policy(ApprovalPolicy::Never)),
-    };
-
-    let agent = AgentLoop::new(
-        config,
-        model,
-        provider,
-        provider_name,
-        tool_ctx,
-        mcp,
-        Some(tx.clone()),
-    );
-
-    let session = Arc::clone(&active.session);
-    let store = Arc::clone(&active.store);
-    let prompt = message;
-    tokio::spawn(async move {
-        let mut session = session.write().await;
-        if let Err(err) = agent.run_turn(&mut session, &prompt, &store).await {
-            let _ = tx.send(AgentEvent::Error {
-                message: err.to_string(),
-            });
-        }
-    });
+    spawn_turn(handle, message, ApprovalPolicy::Never, tx);
 
     let stream = UnboundedReceiverStream::new(rx).map(|event| {
         let payload = server_event_from_agent(&event);
@@ -217,8 +185,13 @@ async fn chat(
 #[derive(Serialize)]
 #[serde(tag = "type", rename_all = "snake_case")]
 enum ServerEvent {
-    AssistantDelta { text: String },
-    ToolStarted { name: String, args: serde_json::Value },
+    AssistantDelta {
+        text: String,
+    },
+    ToolStarted {
+        name: String,
+        args: serde_json::Value,
+    },
     ToolFinished {
         name: String,
         content: String,
@@ -228,7 +201,9 @@ enum ServerEvent {
         input_tokens: Option<u32>,
         output_tokens: Option<u32>,
     },
-    Error { message: String },
+    Error {
+        message: String,
+    },
 }
 
 fn server_event_from_agent(event: &AgentEvent) -> ServerEvent {
@@ -262,12 +237,12 @@ fn role_name(role: Role) -> &'static str {
     }
 }
 
-fn session_to_summary(state: &AppState, session: &Session) -> SessionSummary {
+fn session_to_summary(service: &SessionService, session: &Session) -> SessionSummary {
     SessionSummary {
         id: session.id.clone(),
         cwd: session.cwd.to_string_lossy().into_owned(),
         title: session.title.clone(),
-        message_count: state.message_count(session),
+        message_count: service.message_count(session),
         created_at: session.created_at,
         updated_at: session.updated_at,
     }
