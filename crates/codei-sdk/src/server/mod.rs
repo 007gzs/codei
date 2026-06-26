@@ -26,10 +26,10 @@ fn init_tracing(verbose: bool) {
         "codei_server=info"
     };
     let filter = EnvFilter::try_from_default_env().unwrap_or_else(|_| EnvFilter::new(default));
-    tracing_subscriber::registry()
+    let _ = tracing_subscriber::registry()
         .with(filter)
         .with(fmt::layer())
-        .init();
+        .try_init();
 }
 
 /// Start the CodeI web server and block until it shuts down.
